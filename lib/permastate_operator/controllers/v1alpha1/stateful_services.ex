@@ -1,4 +1,4 @@
-defmodule PermastateOperator.Controller.V1alpha1.StatefulService do
+defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   @moduledoc """
   PermastateOperator: StatefulService CRD.
 
