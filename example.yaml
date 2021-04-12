@@ -1,0 +1,9 @@
+---
+apiVersion: cloudstate.io/v1alpha1
+kind: StatefulService
+metadata:
+  name: shopping-cart
+  namespace: default
+spec:
+  containers:
+  - image: my-docker-hub-username/shopping-cart:latest
