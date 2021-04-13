@@ -1,12 +1,12 @@
-defmodule PermastateOperator.Controller.V1alpha1.WidegetTest do
+defmodule PermastateOperator.Controller.V1alpha1.StatefulServicesTest do
   @moduledoc false
   use ExUnit.Case, async: false
-  alias PermastateOperator.Controller.V1alpha1.Wideget
+  alias PermastateOperator.Controller.V1alpha1.StatefulServices
 
   describe "add/1" do
     test "returns :ok" do
       event = %{}
-      result = Wideget.add(event)
+      result = StatefulServices.add(event)
       assert result == :ok
     end
   end
@@ -14,7 +14,7 @@ defmodule PermastateOperator.Controller.V1alpha1.WidegetTest do
   describe "modify/1" do
     test "returns :ok" do
       event = %{}
-      result = Wideget.modify(event)
+      result = StatefulServices.modify(event)
       assert result == :ok
     end
   end
@@ -22,7 +22,7 @@ defmodule PermastateOperator.Controller.V1alpha1.WidegetTest do
   describe "delete/1" do
     test "returns :ok" do
       event = %{}
-      result = Wideget.delete(event)
+      result = StatefulServices.delete(event)
       assert result == :ok
     end
   end
@@ -30,7 +30,7 @@ defmodule PermastateOperator.Controller.V1alpha1.WidegetTest do
   describe "reconcile/1" do
     test "returns :ok" do
       event = %{}
-      result = Wideget.reconcile(event)
+      result = StatefulServices.reconcile(event)
       assert result == :ok
     end
   end
