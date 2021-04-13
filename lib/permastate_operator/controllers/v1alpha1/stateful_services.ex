@@ -126,23 +126,6 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     }
   end
 
-  #defp parse(%{
-  #  "kind" => "StatefulService",
-  #  "apiVersion" => "cloudstate.io/v1alpha1",
-  #  "metadata" => %{"name" => name, "namespace" => ns},
-  #  "spec" => %{"containers" => containers}
-  #}) do
-  #  statefulset = gen_statefulset(ns, name, containers)
-  #  service = gen_service(ns, name)
-  #  configmap = gen_configmap(ns)
-  #
-  #  %{
-  #    configmap: configmap,
-  #    statefulset: statefulset,
-  #    service: service
-  #  }
-  #end
-
   defp gen_configmap(ns) do
     %{
       "apiVersion" => "v1",

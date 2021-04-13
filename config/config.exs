@@ -17,12 +17,12 @@ end
 
 if Mix.env() == :prod do
   config :k8s,
-         clusters: %{
-           default: %{}
-         }
+    clusters: %{
+      default: %{}
+    }
 
   config :bonny,
-         cluster_name: :default
+    cluster_name: :default
 end
 
 config :bonny,
