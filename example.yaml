@@ -6,4 +6,4 @@ metadata:
   namespace: default
 spec:
   containers:
-  - image: my-docker-hub-username/shopping-cart:latest
+  - image: cloudstateio/cloudstate-python-tck:latest

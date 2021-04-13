@@ -5,13 +5,24 @@ config :logger, level: :debug
 if Mix.env() == :dev do
   config :k8s,
     clusters: %{
-      dev: %{
-        conn: "~/.kube/config"
+      default: %{
+        conf: "~/.kube/config",
+        conf_opts: [context: "kind-default"]
       }
     }
 
   config :bonny,
-    cluster_name: :dev
+    cluster_name: :default
+end
+
+if Mix.env() == :prod do
+  config :k8s,
+         clusters: %{
+           default: %{}
+         }
+
+  config :bonny,
+         cluster_name: :default
 end
 
 config :bonny,

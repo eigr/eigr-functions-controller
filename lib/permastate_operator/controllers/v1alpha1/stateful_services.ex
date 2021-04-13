@@ -22,14 +22,14 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
 
   @version "v1alpha1"
 
-  @rule {"apps", ["deployments"], ["*"]}
-  @rule {"", ["services", "pods", "configmap"], ["*"]}
+  @rule {"", ["deployments", "statefulsets"], ["*"]}
+  @rule {"", ["services", "pods", "configmaps"], ["*"]}
 
   # It would be possible to call @group "permastate.eigr.io"
   # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
   @group "cloudstate.io"
 
-  @scope :namespaced
+  @scope :cluster
   @names %{
     plural: "statefulservices",
     singular: "statefulservice",
@@ -65,7 +65,8 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     track_event(:add, payload)
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.create(resources.deployment) |> run,
+    with {:ok, _} <- K8s.Client.create(resources.configmap) |> run,
+         {:ok, _} <- K8s.Client.create(resources.statefulset) |> run,
          {:ok, _} <- K8s.Client.create(resources.service) |> run do
       :ok
     else
@@ -81,7 +82,8 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   def modify(payload) do
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.patch(resources.deployment) |> run,
+    with {:ok, _} <- K8s.Client.patch(resources.configmap) |> run,
+         {:ok, _} <- K8s.Client.patch(resources.statefulset) |> run,
          {:ok, _} <- K8s.Client.patch(resources.service) |> run do
       :ok
     else
@@ -98,7 +100,8 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     track_event(:delete, payload)
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.delete(resources.deployment) |> run,
+    with {:ok, _} <- K8s.Client.delete(resources.configmap) |> run,
+         {:ok, _} <- K8s.Client.delete(resources.statefulset) |> run,
          {:ok, _} <- K8s.Client.delete(resources.service) |> run do
       :ok
     else
@@ -108,12 +111,13 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
 
   defp parse(%{
          "kind" => "StatefulService",
-         "metadata" => %{"name" => name, "namespace" => ns},
+         "apiVersion" => "cloudstate.io/v1alpha1",
+         "metadata" => %{"name" => name},
          "spec" => %{"containers" => containers}
        }) do
-    statefulset = gen_statefulset(ns, name, containers)
-    service = gen_service(ns, name)
-    configmap = gen_configmap(ns)
+    statefulset = gen_statefulset("default", name, containers)
+    service = gen_service("default", name)
+    configmap = gen_configmap("default")
 
     %{
       configmap: configmap,
@@ -121,6 +125,23 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
       service: service
     }
   end
+
+  #defp parse(%{
+  #  "kind" => "StatefulService",
+  #  "apiVersion" => "cloudstate.io/v1alpha1",
+  #  "metadata" => %{"name" => name, "namespace" => ns},
+  #  "spec" => %{"containers" => containers}
+  #}) do
+  #  statefulset = gen_statefulset(ns, name, containers)
+  #  service = gen_service(ns, name)
+  #  configmap = gen_configmap(ns)
+  #
+  #  %{
+  #    configmap: configmap,
+  #    statefulset: statefulset,
+  #    service: service
+  #  }
+  #end
 
   defp gen_configmap(ns) do
     %{
@@ -170,7 +191,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
 
   defp gen_statefulset(ns, name, containers) do
     container = List.first(containers)
-    image = map["image"]
+    image = container["image"]
 
     %{
       "apiVersion" => "apps/v1",
