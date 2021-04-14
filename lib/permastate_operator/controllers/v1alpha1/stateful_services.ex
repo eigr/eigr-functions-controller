@@ -123,7 +123,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   }) do
     statefulset = gen_statefulset(ns, name, containers)
     service = gen_service(ns, name)
-    configmap = gen_configmap(ns)
+    configmap = gen_configmap(ns, "proxy")
 
     %{
       configmap: configmap,
@@ -132,7 +132,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     }
   end
 
-  defp gen_configmap(ns) do
+  defp gen_configmap(ns, name) do
     %{
       "apiVersion" => "v1",
       "kind" => "ConfigMap",
@@ -141,8 +141,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
         "name" => "proxy-cm"
       },
       "data" => %{
-        "NODE_COOKIE" => "6eycE1E/S341t4Bcto262ffyFWklCWHQIKloJDJYR7Y=",
-        "PROXY_APP_NAME" => "proxy",
+        "PROXY_APP_NAME" => name,
         "PROXY_CLUSTER_POLLING" => "3000",
         "PROXY_CLUSTER_STRATEGY" => "kubernetes-dns",
         "PROXY_HEADLESS_SERVICE" => "proxy-headless-svc",
@@ -165,10 +164,11 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
       "metadata" => %{
         "name" => "proxy-headless-svc",
         "namespace" => ns,
-        "labels" => %{"svc-cluster-name" => "svc-proxy-#{name}-cluster"}
+        "labels" => %{"svc-cluster-name" => "svc-proxy"}
       },
       "spec" => %{
-        "selector" => %{"cluster-name" => "proxy-#{name}-cluster"},
+        "clusterIP" => "None",
+        "selector" => %{"cluster-name" => "proxy"},
         "ports" => [
           %{"port" => 4369, "name" => "epmd"},
           %{"port" => 9000, "name" => "proxy"},
@@ -188,11 +188,11 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
       "metadata" => %{
         "name" => name,
         "namespace" => ns,
-        "labels" => %{"app" => name}
+        "labels" => %{"app" => name, "cluster-name" => "proxy"}
       },
       "spec" => %{
         "selector" => %{
-          "matchLabels" => %{"app" => name, "cluster-name" => "proxy-#{name}-cluster"}
+          "matchLabels" => %{"app" => name, "cluster-name" => "proxy"}
         },
         "serviceName" => "proxy-headless-svc",
         "replicas" => replicas,
@@ -202,17 +202,17 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
               "prometheus.io/port" => "9001",
               "prometheus.io/scrape" => "true"
             },
-            "labels" => %{"app" => name, "cluster-name" => "proxy-#{name}-cluster"}
+            "labels" => %{"app" => name, "cluster-name" => "proxy"}
           },
           "spec" => %{
             "containers" => [
               %{
                 "name" => "massa-proxy",
-                "image" => "docker.io/eigr/massa-proxy:0.1.29",
+                "image" => "docker.io/eigr/massa-proxy:0.1.30",
                 "env" => [
                   %{
-                    "name" => "NODE_COOKIE",
-                    "value" => "massa_proxy_6eycE1E/S341t4Bcto262ffyFWklCWHQIKloJDJYR7Y="
+                    "name" => "PROXY_POD_IP",
+                    "value" => "6eycE1E/S341t4Bcto262ffyFWklCWHQIKloJDJYR7Y="
                   },
                   %{
                     "name" => "PROXY_POD_IP",
