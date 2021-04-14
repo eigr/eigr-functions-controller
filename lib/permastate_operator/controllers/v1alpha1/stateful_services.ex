@@ -22,8 +22,8 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
 
   @version "v1alpha1"
 
-  @rule {"", ["deployments", "statefulsets"], ["*"]}
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
+  @rule {"apps", ["statefulsets", "deployments"], ["*"]}
 
   # It would be possible to call @group "permastate.eigr.io"
   # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
@@ -65,10 +65,16 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     track_event(:add, payload)
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.create(resources.configmap) |> run,
-         {:ok, _} <- K8s.Client.create(resources.statefulset) |> run,
-         {:ok, _} <- K8s.Client.create(resources.service) |> run do
-      :ok
+    with {:ok, _} <- K8s.Client.create(resources.service) |> run(),
+         {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
+      resource_res = K8s.Client.create(resources.statefulset) |> run()
+      Logger.info("service result: #{inspect(resource_res)}")
+
+      case resource_res do
+        {:ok, _} -> :ok
+        {:error, error} -> {:error, error}
+        _ -> {:error}
+      end
     else
       {:error, error} -> {:error, error}
     end
@@ -82,9 +88,9 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   def modify(payload) do
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.patch(resources.configmap) |> run,
-         {:ok, _} <- K8s.Client.patch(resources.statefulset) |> run,
-         {:ok, _} <- K8s.Client.patch(resources.service) |> run do
+    with {:ok, _} <- K8s.Client.patch(resources.service) |> run(),
+         {:ok, _} <- K8s.Client.patch(resources.configmap) |> run(),
+         {:ok, _} <- K8s.Client.patch(resources.statefulset) |> run() do
       :ok
     else
       {:error, error} -> {:error, error}
@@ -100,9 +106,9 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     track_event(:delete, payload)
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.delete(resources.configmap) |> run,
-         {:ok, _} <- K8s.Client.delete(resources.statefulset) |> run,
-         {:ok, _} <- K8s.Client.delete(resources.service) |> run do
+    with {:ok, _} <- K8s.Client.delete(resources.service) |> run(),
+         {:ok, _} <- K8s.Client.delete(resources.configmap) |> run(),
+         {:ok, _} <- K8s.Client.delete(resources.statefulset) |> run() do
       :ok
     else
       {:error, error} -> {:error, error}
@@ -202,16 +208,15 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
             "containers" => [
               %{
                 "name" => "massa-proxy",
-                "image" => "docker.io/eigr/massa-proxy:0.1.0",
+                "image" => "docker.io/eigr/massa-proxy:0.1.29",
                 "env" => [
                   %{
                     "name" => "NODE_COOKIE",
                     "value" => "massa_proxy_6eycE1E/S341t4Bcto262ffyFWklCWHQIKloJDJYR7Y="
                   },
                   %{
-                    "PROXY_POD_IP" => %{
-                      "valueFrom" => %{"fieldRef" => %{"fieldPath" => "status.podIP"}}
-                    }
+                    "name" => "PROXY_POD_IP",
+                    "valueFrom" => %{"fieldRef" => %{"fieldPath" => "status.podIP"}}
                   }
                 ],
                 "ports" => [

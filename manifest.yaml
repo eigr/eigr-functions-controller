@@ -72,7 +72,7 @@
                 }
               }
             ],
-            "image": "eigr/permastate:0.1.8",
+            "image": "eigr/permastate:0.1.16",
             "name": "permastate-operator",
             "resources": {
               "limits": {
@@ -167,8 +167,9 @@
         ""
       ],
       "resources": [
-        "deployments",
-        "statefulsets"
+        "services",
+        "pods",
+        "configmaps"
       ],
       "verbs": [
         "*"
@@ -176,12 +177,11 @@
     },
     {
       "apiGroups": [
-        ""
+        "apps"
       ],
       "resources": [
-        "services",
-        "pods",
-        "configmaps"
+        "statefulsets",
+        "deployments"
       ],
       "verbs": [
         "*"
