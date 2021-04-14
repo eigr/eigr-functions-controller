@@ -29,12 +29,12 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
   @group "cloudstate.io"
 
-  @scope :cluster
+  @scope :namespaced
   @names %{
     plural: "statefulservices",
     singular: "statefulservice",
     kind: "StatefulService",
-    shortNames: ["st", "stss"]
+    shortNames: ["ss", "stss"]
   }
 
   # @additional_printer_columns [
@@ -116,14 +116,14 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   end
 
   defp parse(%{
-         "kind" => "StatefulService",
-         "apiVersion" => "cloudstate.io/v1alpha1",
-         "metadata" => %{"name" => name},
-         "spec" => %{"containers" => containers}
-       }) do
-    statefulset = gen_statefulset("default", name, containers)
-    service = gen_service("default", name)
-    configmap = gen_configmap("default")
+    "kind" => "StatefulService",
+    "apiVersion" => "cloudstate.io/v1alpha1",
+    "metadata" => %{"name" => name, "namespace" => ns},
+    "spec" => %{"containers" => containers}
+  }) do
+    statefulset = gen_statefulset(ns, name, containers)
+    service = gen_service(ns, name)
+    configmap = gen_configmap(ns)
 
     %{
       configmap: configmap,
@@ -178,7 +178,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     }
   end
 
-  defp gen_statefulset(ns, name, containers) do
+  defp gen_statefulset(ns \\ "default", name, replicas \\ 1, containers) do
     container = List.first(containers)
     image = container["image"]
 
@@ -195,7 +195,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
           "matchLabels" => %{"app" => name, "cluster-name" => "proxy-#{name}-cluster"}
         },
         "serviceName" => "proxy-headless-svc",
-        "replicas" => 1,
+        "replicas" => replicas,
         "template" => %{
           "metadata" => %{
             "annotations" => %{

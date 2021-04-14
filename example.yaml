@@ -4,6 +4,7 @@ kind: StatefulService
 metadata:
   name: shopping-cart
   namespace: default
+  replicas: 1
 spec:
   containers:
   - image: cloudstateio/cloudstate-python-tck:latest

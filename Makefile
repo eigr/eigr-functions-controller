@@ -1,6 +1,6 @@
 .PHONY: clean compile build apply example local
 
-BONNY_IMAGE=eigr/permastate:0.1.16
+BONNY_IMAGE=eigr/permastate:0.1.21
 
 all: clean compile build apply
 
