@@ -72,7 +72,7 @@
                 }
               }
             ],
-            "image": "eigr/permastate:0.1.28",
+            "image": "eigr/permastate:0.1.29",
             "name": "permastate-operator",
             "resources": {
               "limits": {

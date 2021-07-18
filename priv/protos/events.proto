@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package io.eigr.permastate.operator;
+
+message Resource {
+    string name = 1;
+    map<string, string> metadata = 2;
+    enum Kind {
+        STATEFUL_SERVICE = 0;
+        STATEFUL_STORE = 1;
+        CONFIG_MAP = 2;
+        SECRETS = 3;
+        SERVICE = 4;
+    }
+    Kind kind = 3;
+}
+
+message Create {
+    Resource resource = 1;
+}
+
+message Delete {
+    Resource resource = 1;
+}
+
+message Modify {
+    Resource resource = 1;
+}
+
+message Scale {
+    int32 replicas = 1;
+    Resource resource = 2;
+}
+
+message Apply {
+    oneof action {
+        Scale scale = 1;
+        Delete delete = 2;
+    }
+}
+
+message Event {
+    oneof data {
+        // Server events
+        Create create = 1;
+        Delete delete = 2;
+        Modify modify = 3;
+
+        // Client events
+        Apply apply = 4;
+    }
+}
+
+service OperatorService {
+    rpc HandleEvents(stream Event) returns (stream Event) {}
+}
+

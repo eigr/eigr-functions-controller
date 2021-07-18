@@ -208,7 +208,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
             "containers" => [
               %{
                 "name" => "massa-proxy",
-                "image" => "docker.io/eigr/massa-proxy:0.1.30",
+                "image" => "docker.io/eigr/massa-proxy:0.1.31",
                 "env" => [
                   %{
                     "name" => "PROXY_POD_IP",
