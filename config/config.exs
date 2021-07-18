@@ -27,10 +27,10 @@ end
 
 config :bonny,
   # Add each CRD Controller module for this operator to load here
-  controllers: [
-    # PermastateOperator.Controller.V1alpha1.StatefulStore,
-    PermastateOperator.Controller.V1alpha1.StatefulServices
-  ],
+  # controllers: [
+  # PermastateOperator.Controller.V1alpha1.StatefulStore,
+  # PermastateOperator.Controller.V1alpha1.StatefulServices
+  # ],
   cluster_name: :default,
   namespace: :all,
 

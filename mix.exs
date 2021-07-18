@@ -22,9 +22,13 @@ defmodule PermastateOperator.MixProject do
   defp deps do
     [
       {:bonny, "~> 0.4"},
-      {:grpc, "~> 0.3"},
       {:protobuf, "~> 0.8.0-beta.1", override: true},
+      {:grpc, github: "elixir-grpc/grpc", override: true},
       {:cowlib, "~> 2.11.0", override: true},
+      {:prometheus, "~> 4.6"},
+      {:grpc_prometheus, "~> 0.1"},
+      {:prometheus_plugs, "~> 1.1"},
+      {:plug_cowboy, "~> 2.3"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
     ]
   end

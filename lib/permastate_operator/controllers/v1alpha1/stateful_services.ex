@@ -46,6 +46,13 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   #  }
   # ]
 
+  def child_spec(_arg) do
+    %{
+      id: __MODULE__,
+      start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
+    }
+  end
+
   @doc """
   Called periodically for each existing CustomResource to allow for reconciliation.
   """
@@ -116,11 +123,11 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   end
 
   defp parse(%{
-    "kind" => "StatefulService",
-    "apiVersion" => "cloudstate.io/v1alpha1",
-    "metadata" => %{"name" => name, "namespace" => ns},
-    "spec" => %{"containers" => containers}
-  }) do
+         "kind" => "StatefulService",
+         "apiVersion" => "cloudstate.io/v1alpha1",
+         "metadata" => %{"name" => name, "namespace" => ns},
+         "spec" => %{"containers" => containers}
+       }) do
     statefulset = gen_statefulset(ns, name, containers)
     service = gen_service(ns, name)
     configmap = gen_configmap(ns, "proxy")

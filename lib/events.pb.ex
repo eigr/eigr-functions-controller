@@ -13,15 +13,15 @@ defmodule Io.Eigr.Permastate.Operator.Resource.Kind do
     )
   end
 
-  field :STATEFUL_SERVICE, 0
+  field(:STATEFUL_SERVICE, 0)
 
-  field :STATEFUL_STORE, 1
+  field(:STATEFUL_STORE, 1)
 
-  field :CONFIG_MAP, 2
+  field(:CONFIG_MAP, 2)
 
-  field :SECRETS, 3
+  field(:SECRETS, 3)
 
-  field :SERVICE, 4
+  field(:SERVICE, 4)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Resource.MetadataEntry do
@@ -45,8 +45,8 @@ defmodule Io.Eigr.Permastate.Operator.Resource.MetadataEntry do
     )
   end
 
-  field :key, 1, type: :string
-  field :value, 2, type: :string
+  field(:key, 1, type: :string)
+  field(:value, 2, type: :string)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Resource do
@@ -83,14 +83,15 @@ defmodule Io.Eigr.Permastate.Operator.Resource do
     )
   end
 
-  field :name, 1, type: :string
+  field(:name, 1, type: :string)
 
-  field :metadata, 2,
+  field(:metadata, 2,
     repeated: true,
     type: Io.Eigr.Permastate.Operator.Resource.MetadataEntry,
     map: true
+  )
 
-  field :kind, 3, type: Io.Eigr.Permastate.Operator.Resource.Kind, enum: true
+  field(:kind, 3, type: Io.Eigr.Permastate.Operator.Resource.Kind, enum: true)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Create do
@@ -113,7 +114,7 @@ defmodule Io.Eigr.Permastate.Operator.Create do
     )
   end
 
-  field :resource, 1, type: Io.Eigr.Permastate.Operator.Resource
+  field(:resource, 1, type: Io.Eigr.Permastate.Operator.Resource)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Delete do
@@ -136,7 +137,7 @@ defmodule Io.Eigr.Permastate.Operator.Delete do
     )
   end
 
-  field :resource, 1, type: Io.Eigr.Permastate.Operator.Resource
+  field(:resource, 1, type: Io.Eigr.Permastate.Operator.Resource)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Modify do
@@ -159,7 +160,7 @@ defmodule Io.Eigr.Permastate.Operator.Modify do
     )
   end
 
-  field :resource, 1, type: Io.Eigr.Permastate.Operator.Resource
+  field(:resource, 1, type: Io.Eigr.Permastate.Operator.Resource)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Scale do
@@ -185,8 +186,8 @@ defmodule Io.Eigr.Permastate.Operator.Scale do
     )
   end
 
-  field :replicas, 1, type: :int32
-  field :resource, 2, type: Io.Eigr.Permastate.Operator.Resource
+  field(:replicas, 1, type: :int32)
+  field(:resource, 2, type: Io.Eigr.Permastate.Operator.Resource)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Apply do
@@ -212,9 +213,9 @@ defmodule Io.Eigr.Permastate.Operator.Apply do
     )
   end
 
-  oneof :action, 0
-  field :scale, 1, type: Io.Eigr.Permastate.Operator.Scale, oneof: 0
-  field :delete, 2, type: Io.Eigr.Permastate.Operator.Delete, oneof: 0
+  oneof(:action, 0)
+  field(:scale, 1, type: Io.Eigr.Permastate.Operator.Scale, oneof: 0)
+  field(:delete, 2, type: Io.Eigr.Permastate.Operator.Delete, oneof: 0)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Event do
@@ -247,11 +248,11 @@ defmodule Io.Eigr.Permastate.Operator.Event do
     )
   end
 
-  oneof :data, 0
-  field :create, 1, type: Io.Eigr.Permastate.Operator.Create, oneof: 0
-  field :delete, 2, type: Io.Eigr.Permastate.Operator.Delete, oneof: 0
-  field :modify, 3, type: Io.Eigr.Permastate.Operator.Modify, oneof: 0
-  field :apply, 4, type: Io.Eigr.Permastate.Operator.Apply, oneof: 0
+  oneof(:data, 0)
+  field(:create, 1, type: Io.Eigr.Permastate.Operator.Create, oneof: 0)
+  field(:delete, 2, type: Io.Eigr.Permastate.Operator.Delete, oneof: 0)
+  field(:modify, 3, type: Io.Eigr.Permastate.Operator.Modify, oneof: 0)
+  field(:apply, 4, type: Io.Eigr.Permastate.Operator.Apply, oneof: 0)
 end
 
 defmodule Io.Eigr.Permastate.Operator.OperatorService.Service do
@@ -270,9 +271,11 @@ defmodule Io.Eigr.Permastate.Operator.OperatorService.Service do
     )
   end
 
-  rpc :HandleEvents,
-      stream(Io.Eigr.Permastate.Operator.Event),
-      stream(Io.Eigr.Permastate.Operator.Event)
+  rpc(
+    :HandleEvents,
+    stream(Io.Eigr.Permastate.Operator.Event),
+    stream(Io.Eigr.Permastate.Operator.Event)
+  )
 end
 
 defmodule Io.Eigr.Permastate.Operator.OperatorService.Stub do
