@@ -7,6 +7,8 @@ defmodule PermastateOperator.Server.OperatorService do
     service: Io.Eigr.Permastate.Operator.OperatorService.Service,
     compressors: [GRPC.Compressor.Gzip]
 
+  alias PermastateOperator.Server.OperatorServiceRouter.Supervisor, as: OperatorServiceSupervisor
+
   require Logger
 
   def handle_events(_events, _stream) do

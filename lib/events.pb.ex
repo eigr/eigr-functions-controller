@@ -24,6 +24,73 @@ defmodule Io.Eigr.Permastate.Operator.Resource.Kind do
   field(:SERVICE, 4)
 end
 
+defmodule Io.Eigr.Permastate.Operator.Session do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          id: String.t()
+        }
+
+  defstruct [:id]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 7, 83, 101, 115, 115, 105, 111, 110, 18, 14, 10, 2, 105, 100, 24, 1, 32, 1, 40, 9, 82,
+        2, 105, 100>>
+    )
+  end
+
+  field(:id, 1, type: :string)
+end
+
+defmodule Io.Eigr.Permastate.Operator.Login do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          session: Io.Eigr.Permastate.Operator.Session.t() | nil
+        }
+
+  defstruct [:session]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 5, 76, 111, 103, 105, 110, 18, 62, 10, 7, 115, 101, 115, 115, 105, 111, 110, 24, 1,
+        32, 1, 40, 11, 50, 36, 46, 105, 111, 46, 101, 105, 103, 114, 46, 112, 101, 114, 109, 97,
+        115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116, 111, 114, 46, 83, 101, 115, 115,
+        105, 111, 110, 82, 7, 115, 101, 115, 115, 105, 111, 110>>
+    )
+  end
+
+  field(:session, 1, type: Io.Eigr.Permastate.Operator.Session)
+end
+
+defmodule Io.Eigr.Permastate.Operator.Logout do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          session: Io.Eigr.Permastate.Operator.Session.t() | nil
+        }
+
+  defstruct [:session]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 6, 76, 111, 103, 111, 117, 116, 18, 62, 10, 7, 115, 101, 115, 115, 105, 111, 110, 24,
+        1, 32, 1, 40, 11, 50, 36, 46, 105, 111, 46, 101, 105, 103, 114, 46, 112, 101, 114, 109,
+        97, 115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116, 111, 114, 46, 83, 101, 115,
+        115, 105, 111, 110, 82, 7, 115, 101, 115, 115, 105, 111, 110>>
+    )
+  end
+
+  field(:session, 1, type: Io.Eigr.Permastate.Operator.Session)
+end
+
 defmodule Io.Eigr.Permastate.Operator.Resource.MetadataEntry do
   @moduledoc false
   use Protobuf, map: true, syntax: :proto3
@@ -92,6 +159,33 @@ defmodule Io.Eigr.Permastate.Operator.Resource do
   )
 
   field(:kind, 3, type: Io.Eigr.Permastate.Operator.Resource.Kind, enum: true)
+end
+
+defmodule Io.Eigr.Permastate.Operator.Scale do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          replicas: integer,
+          resource: Io.Eigr.Permastate.Operator.Resource.t() | nil
+        }
+
+  defstruct [:replicas, :resource]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 5, 83, 99, 97, 108, 101, 18, 26, 10, 8, 114, 101, 112, 108, 105, 99, 97, 115, 24, 1,
+        32, 1, 40, 5, 82, 8, 114, 101, 112, 108, 105, 99, 97, 115, 18, 65, 10, 8, 114, 101, 115,
+        111, 117, 114, 99, 101, 24, 2, 32, 1, 40, 11, 50, 37, 46, 105, 111, 46, 101, 105, 103,
+        114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116,
+        111, 114, 46, 82, 101, 115, 111, 117, 114, 99, 101, 82, 8, 114, 101, 115, 111, 117, 114,
+        99, 101>>
+    )
+  end
+
+  field(:replicas, 1, type: :int32)
+  field(:resource, 2, type: Io.Eigr.Permastate.Operator.Resource)
 end
 
 defmodule Io.Eigr.Permastate.Operator.Create do
@@ -163,33 +257,6 @@ defmodule Io.Eigr.Permastate.Operator.Modify do
   field(:resource, 1, type: Io.Eigr.Permastate.Operator.Resource)
 end
 
-defmodule Io.Eigr.Permastate.Operator.Scale do
-  @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          replicas: integer,
-          resource: Io.Eigr.Permastate.Operator.Resource.t() | nil
-        }
-
-  defstruct [:replicas, :resource]
-
-  def descriptor do
-    # credo:disable-for-next-line
-    Elixir.Google.Protobuf.DescriptorProto.decode(
-      <<10, 5, 83, 99, 97, 108, 101, 18, 26, 10, 8, 114, 101, 112, 108, 105, 99, 97, 115, 24, 1,
-        32, 1, 40, 5, 82, 8, 114, 101, 112, 108, 105, 99, 97, 115, 18, 65, 10, 8, 114, 101, 115,
-        111, 117, 114, 99, 101, 24, 2, 32, 1, 40, 11, 50, 37, 46, 105, 111, 46, 101, 105, 103,
-        114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116,
-        111, 114, 46, 82, 101, 115, 111, 117, 114, 99, 101, 82, 8, 114, 101, 115, 111, 117, 114,
-        99, 101>>
-    )
-  end
-
-  field(:replicas, 1, type: :int32)
-  field(:resource, 2, type: Io.Eigr.Permastate.Operator.Resource)
-end
-
 defmodule Io.Eigr.Permastate.Operator.Apply do
   @moduledoc false
   use Protobuf, syntax: :proto3
@@ -241,10 +308,16 @@ defmodule Io.Eigr.Permastate.Operator.Event do
         111, 100, 105, 102, 121, 24, 3, 32, 1, 40, 11, 50, 35, 46, 105, 111, 46, 101, 105, 103,
         114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116,
         111, 114, 46, 77, 111, 100, 105, 102, 121, 72, 0, 82, 6, 109, 111, 100, 105, 102, 121, 18,
-        58, 10, 5, 97, 112, 112, 108, 121, 24, 4, 32, 1, 40, 11, 50, 34, 46, 105, 111, 46, 101,
-        105, 103, 114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101, 46, 111, 112, 101, 114,
-        97, 116, 111, 114, 46, 65, 112, 112, 108, 121, 72, 0, 82, 5, 97, 112, 112, 108, 121, 66,
-        6, 10, 4, 100, 97, 116, 97>>
+        60, 10, 6, 108, 111, 103, 105, 110, 103, 24, 4, 32, 1, 40, 11, 50, 34, 46, 105, 111, 46,
+        101, 105, 103, 114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101, 46, 111, 112, 101,
+        114, 97, 116, 111, 114, 46, 76, 111, 103, 105, 110, 72, 0, 82, 6, 108, 111, 103, 105, 110,
+        103, 18, 61, 10, 6, 108, 111, 103, 111, 117, 116, 24, 5, 32, 1, 40, 11, 50, 35, 46, 105,
+        111, 46, 101, 105, 103, 114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101, 46, 111,
+        112, 101, 114, 97, 116, 111, 114, 46, 76, 111, 103, 111, 117, 116, 72, 0, 82, 6, 108, 111,
+        103, 111, 117, 116, 18, 58, 10, 5, 97, 112, 112, 108, 121, 24, 6, 32, 1, 40, 11, 50, 34,
+        46, 105, 111, 46, 101, 105, 103, 114, 46, 112, 101, 114, 109, 97, 115, 116, 97, 116, 101,
+        46, 111, 112, 101, 114, 97, 116, 111, 114, 46, 65, 112, 112, 108, 121, 72, 0, 82, 5, 97,
+        112, 112, 108, 121, 66, 6, 10, 4, 100, 97, 116, 97>>
     )
   end
 
@@ -252,7 +325,9 @@ defmodule Io.Eigr.Permastate.Operator.Event do
   field(:create, 1, type: Io.Eigr.Permastate.Operator.Create, oneof: 0)
   field(:delete, 2, type: Io.Eigr.Permastate.Operator.Delete, oneof: 0)
   field(:modify, 3, type: Io.Eigr.Permastate.Operator.Modify, oneof: 0)
-  field(:apply, 4, type: Io.Eigr.Permastate.Operator.Apply, oneof: 0)
+  field(:loging, 4, type: Io.Eigr.Permastate.Operator.Login, oneof: 0)
+  field(:logout, 5, type: Io.Eigr.Permastate.Operator.Logout, oneof: 0)
+  field(:apply, 6, type: Io.Eigr.Permastate.Operator.Apply, oneof: 0)
 end
 
 defmodule Io.Eigr.Permastate.Operator.OperatorService.Service do
