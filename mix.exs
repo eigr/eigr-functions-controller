@@ -42,7 +42,7 @@ defmodule PermastateOperator.MixProject do
       overwrite: true,
       cookie: "#{@app}_cookie",
       steps: [:assemble, &Bakeware.assemble/1],
-      strip_beams: Mix.env() == :prod
+      bakeware: [compression_level: 19]
     ]
   end
 end
