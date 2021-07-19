@@ -13,7 +13,13 @@ defmodule PermastateOperator do
 
   def start(_type, _args) do
     children = [
+      Registry.child_spec(
+        keys: :unique,
+        name: PermastateOperator.Registry,
+        partitions: System.schedulers_online()
+      ),
       @grpc_server,
+      PermastateOperator.Server.OperatorServiceRouter.Supervisor,
       PermastateOperator.Controller.V1alpha1.StatefulServices
     ]
 

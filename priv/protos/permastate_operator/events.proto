@@ -2,6 +2,18 @@ syntax = "proto3";
 
 package io.eigr.permastate.operator;
 
+message Session {
+    string id = 1;
+}
+
+message Login {
+    Session session = 1;
+}
+
+message Logout {
+    Session session = 1;
+}
+
 message Resource {
     string name = 1;
     map<string, string> metadata = 2;
@@ -13,6 +25,11 @@ message Resource {
         SERVICE = 4;
     }
     Kind kind = 3;
+}
+
+message Scale {
+    int32 replicas = 1;
+    Resource resource = 2;
 }
 
 message Create {
@@ -27,16 +44,12 @@ message Modify {
     Resource resource = 1;
 }
 
-message Scale {
-    int32 replicas = 1;
-    Resource resource = 2;
-}
-
 message Apply {
     oneof action {
         Scale scale = 1;
         Delete delete = 2;
     }
+    Session session = 3;
 }
 
 message Event {
@@ -47,7 +60,9 @@ message Event {
         Modify modify = 3;
 
         // Client events
-        Apply apply = 4;
+        Login loging = 4;
+        Logout logout = 5;
+        Apply apply = 6;
     }
 }
 
