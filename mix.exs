@@ -1,13 +1,16 @@
 defmodule PermastateOperator.MixProject do
   use Mix.Project
 
+  @app :permastate_operator
+
   def project do
     [
-      app: :permastate_operator,
+      app: @app,
       version: "0.1.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      releases: [{@app, release()}]
     ]
   end
 
@@ -29,7 +32,17 @@ defmodule PermastateOperator.MixProject do
       {:grpc_prometheus, "~> 0.1"},
       {:prometheus_plugs, "~> 1.1"},
       {:plug_cowboy, "~> 2.3"},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:bakeware, ">= 0.0.0", runtime: false}
+    ]
+  end
+
+  defp release do
+    [
+      overwrite: true,
+      cookie: "#{@app}_cookie",
+      steps: [:assemble, &Bakeware.assemble/1],
+      strip_beams: Mix.env() == :prod
     ]
   end
 end
