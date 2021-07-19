@@ -49,6 +49,7 @@ message Apply {
         Scale scale = 1;
         Delete delete = 2;
     }
+    Session session = 3;
 }
 
 message Event {

@@ -14,6 +14,11 @@ defmodule PermastateOperator.Server.OperatorServiceRouter do
   end
 
   @impl true
+  def handle_cast(:logout, state) do
+    {:stop, :normal, state}
+  end
+
+  @impl true
   def handle_info({:DOWN, _, _, _, reason}, %{id: id, stream: %{pid: ref}} = state) do
     Logger.warn("Stream closed with reason #{reason} for Session #{id}")
     Process.demonitor(ref)
@@ -24,6 +29,8 @@ defmodule PermastateOperator.Server.OperatorServiceRouter do
   def start_link({id, _stream} = state) do
     GenServer.start_link(__MODULE__, state, via(id))
   end
+
+  def logout(session_id), do: GenServer.cast(via(session_id), :logout)
 
   defp via(id), do: {:via, Registry, {PermastateOperator.Registry, id}}
 end
