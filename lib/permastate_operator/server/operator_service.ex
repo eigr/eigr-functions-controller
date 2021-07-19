@@ -6,6 +6,8 @@ defmodule PermastateOperator.Server.OperatorService do
     service: Io.Eigr.Permastate.Operator.OperatorService.Service,
     compressors: [GRPC.Compressor.Gzip]
 
+  alias PermastateOperator.Server.OperatorServiceRouter.Supervisor, as: OperatorServiceSupervisor
+
   require Logger
 
   alias PermastateOperator.Server.OperatorServiceRouter

@@ -91,6 +91,73 @@ defmodule Io.Eigr.Permastate.Operator.Logout do
   field :session, 1, type: Io.Eigr.Permastate.Operator.Session
 end
 
+defmodule Io.Eigr.Permastate.Operator.Session do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          id: String.t()
+        }
+
+  defstruct [:id]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 7, 83, 101, 115, 115, 105, 111, 110, 18, 14, 10, 2, 105, 100, 24, 1, 32, 1, 40, 9, 82,
+        2, 105, 100>>
+    )
+  end
+
+  field(:id, 1, type: :string)
+end
+
+defmodule Io.Eigr.Permastate.Operator.Login do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          session: Io.Eigr.Permastate.Operator.Session.t() | nil
+        }
+
+  defstruct [:session]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 5, 76, 111, 103, 105, 110, 18, 62, 10, 7, 115, 101, 115, 115, 105, 111, 110, 24, 1,
+        32, 1, 40, 11, 50, 36, 46, 105, 111, 46, 101, 105, 103, 114, 46, 112, 101, 114, 109, 97,
+        115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116, 111, 114, 46, 83, 101, 115, 115,
+        105, 111, 110, 82, 7, 115, 101, 115, 115, 105, 111, 110>>
+    )
+  end
+
+  field(:session, 1, type: Io.Eigr.Permastate.Operator.Session)
+end
+
+defmodule Io.Eigr.Permastate.Operator.Logout do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          session: Io.Eigr.Permastate.Operator.Session.t() | nil
+        }
+
+  defstruct [:session]
+
+  def descriptor do
+    # credo:disable-for-next-line
+    Elixir.Google.Protobuf.DescriptorProto.decode(
+      <<10, 6, 76, 111, 103, 111, 117, 116, 18, 62, 10, 7, 115, 101, 115, 115, 105, 111, 110, 24,
+        1, 32, 1, 40, 11, 50, 36, 46, 105, 111, 46, 101, 105, 103, 114, 46, 112, 101, 114, 109,
+        97, 115, 116, 97, 116, 101, 46, 111, 112, 101, 114, 97, 116, 111, 114, 46, 83, 101, 115,
+        115, 105, 111, 110, 82, 7, 115, 101, 115, 115, 105, 111, 110>>
+    )
+  end
+
+  field(:session, 1, type: Io.Eigr.Permastate.Operator.Session)
+end
+
 defmodule Io.Eigr.Permastate.Operator.Resource.MetadataEntry do
   @moduledoc false
   use Protobuf, map: true, syntax: :proto3
