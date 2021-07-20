@@ -1,15 +1,16 @@
 #########################
 ###### Build Image ######
 #########################
+FROM elixir:1.12-alpine as builder
 
-FROM bitwalker/alpine-elixir:1.9.4 as builder
+RUN apk add --update git build-base zstd
 
-ENV MIX_ENV=prod \
-  MIX_HOME=/opt/mix \
-  HEX_HOME=/opt/hex
+ENV MIX_ENV=prod
+ENV MIX_HOME=/opt/mix
+ENV HEX_HOME=/opt/hex
 
-RUN mix local.hex --force && \
-  mix local.rebar --force
+RUN mix local.hex --force
+RUN mix local.rebar --force
 
 WORKDIR /app
 
@@ -26,14 +27,14 @@ RUN mix release
 #########################
 ##### Release Image #####
 #########################
+FROM alpine:3
 
-FROM alpine:3.10
+RUN apk add --update openssl zstd
 
-RUN apk add --update openssl ncurses
+WORKDIR /home/app
 
-WORKDIR /app
-COPY --from=builder /app/_build/prod/rel/permastate_operator ./
-RUN chown -R nobody: /app
+COPY --from=builder /app/_build/prod/rel/bakeware/permastate_operator .
 
-ENTRYPOINT ["/app/bin/permastate_operator"]
-CMD ["start"]
+RUN chown -R nobody: /home/app
+
+CMD ["./permastate_operator"]
