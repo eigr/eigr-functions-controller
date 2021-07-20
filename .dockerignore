@@ -1,0 +1,13 @@
+.git/
+.elixir_ls/
+deps/
+_build/
+.git/**/*
+.elixir_ls/**/*
+deps/**/*
+_build/**/*
+README.md
+Dockerfile
+docker-compose.yml
+.gitignore
+docker_run
