@@ -19,6 +19,10 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
 
   require Logger
   use Bonny.Controller
+  alias Io.Eigr.Permastate.Operator.{Event, Session}
+  alias PermastateOperator.Server.OperatorServiceRouter, as: Router
+
+  @app_id "permastate-operator"
 
   @version "v1alpha1"
 
@@ -78,9 +82,17 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
       Logger.info("service result: #{inspect(resource_res)}")
 
       case resource_res do
-        {:ok, _} -> :ok
-        {:error, error} -> {:error, error}
-        _ -> {:error}
+        {:ok, _} ->
+          Session.new(app_id: @app_id)
+          |> Router.create(Event.new())
+
+          :ok
+
+        {:error, error} ->
+          {:error, error}
+
+        _ ->
+          {:error}
       end
     else
       {:error, error} -> {:error, error}
@@ -98,6 +110,9 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     with {:ok, _} <- K8s.Client.patch(resources.service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.configmap) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.statefulset) |> run() do
+      Session.new(app_id: @app_id)
+      |> Router.modify(Event.new())
+
       :ok
     else
       {:error, error} -> {:error, error}
@@ -116,6 +131,9 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
     with {:ok, _} <- K8s.Client.delete(resources.service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.configmap) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.statefulset) |> run() do
+      Session.new(app_id: @app_id)
+      |> Router.delete(Event.new())
+
       :ok
     else
       {:error, error} -> {:error, error}

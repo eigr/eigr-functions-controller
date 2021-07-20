@@ -4,6 +4,8 @@ defmodule PermastateOperator.Server.OperatorServiceRouter do
   """
   use GenServer
   require Logger
+  alias GRPC.Server
+  alias PermastateOperator.Server.OperatorServiceRouter.Supervisor, as: OperatorServiceSupervisor
 
   @impl true
   def init({id, %{payload: %{pid: ref}}} = stream) do
@@ -11,6 +13,24 @@ defmodule PermastateOperator.Server.OperatorServiceRouter do
     Process.flag(:trap_exit, true)
 
     {:ok, %{id: id, stream: stream}}
+  end
+
+  @impl true
+  def handle_cast({:create_resource, event}, %{stream: stream} = state) do
+    Server.send_reply(stream, event)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast({:delete_resource, event}, %{stream: stream} = state) do
+    Server.send_reply(stream, event)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast({:modify_resource, event}, %{stream: stream} = state) do
+    Server.send_reply(stream, event)
+    {:noreply, state}
   end
 
   @impl true
@@ -30,7 +50,21 @@ defmodule PermastateOperator.Server.OperatorServiceRouter do
     GenServer.start_link(__MODULE__, state, via(id))
   end
 
-  def logout(session_id), do: GenServer.cast(via(session_id), :logout)
+  def login(session, stream) do
+    {:ok, _pid} = OperatorServiceSupervisor.add_stream_to_supervisor(session.app_id, stream)
+    :ok
+  end
+
+  def logout(session), do: GenServer.cast(via(session.app_id), :logout)
+
+  def create(session, event),
+    do: GenServer.cast(via(session.app_id), {:create_resource, event})
+
+  def delete(session, event),
+    do: GenServer.cast(via(session.app_id), {:delete_resource, event})
+
+  def modify(session, event),
+    do: GenServer.cast(via(session.app_id), {:modify_resource, event})
 
   defp via(id), do: {:via, Registry, {PermastateOperator.Registry, id}}
 end
