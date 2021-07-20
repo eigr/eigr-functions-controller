@@ -4,6 +4,7 @@ package io.eigr.permastate.operator;
 
 message Session {
     string id = 1;
+    string app_id = 2;
 }
 
 message Login {

@@ -3,15 +3,15 @@ defmodule PermastateOperator.Server.OperatorServiceRouter.Supervisor do
   use DynamicSupervisor
 
   def start_link(_opts),
-    do: DynamicSupervisor.init(__MODULE__, [], name: __MODULE__)
+    do: DynamicSupervisor.start_link(__MODULE__, [], name: __MODULE__)
 
   @impl true
   def init(_opts), do: DynamicSupervisor.init(strategy: :one_for_one)
 
-  def add_stream_to_supervisor(session_id, stream) do
+  def add_stream_to_supervisor(app_id, stream) do
     child_spec = %{
       id: PermastateOperator.Server.OperatorServiceRouter,
-      start: {PermastateOperator.Server.OperatorServiceRouter, :star_link, [{id, stream}]},
+      start: {PermastateOperator.Server.OperatorServiceRouter, :star_link, [{app_id, stream}]},
       restart: :transient
     }
 

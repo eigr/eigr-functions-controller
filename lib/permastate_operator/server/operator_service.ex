@@ -6,6 +6,7 @@ defmodule PermastateOperator.Server.OperatorService do
     service: Io.Eigr.Permastate.Operator.OperatorService.Service,
     compressors: [GRPC.Compressor.Gzip]
 
+  alias Io.Eigr.Permastate.Operator.Event
   alias PermastateOperator.Server.OperatorServiceRouter.Supervisor, as: OperatorServiceSupervisor
 
   require Logger
@@ -13,6 +14,7 @@ defmodule PermastateOperator.Server.OperatorService do
   alias PermastateOperator.Server.OperatorServiceRouter
   alias PermastateOperator.Server.OperatorServiceRouter.Supervisor, as: OperatorServiceSupervisor
 
+  @spec handle_events(Event.t(), GRPC.Server.Stream.t()) :: Event.t()
   def handle_events(events, stream) do
     Stream.each(events, fn event ->
       act_on_event_info(event, stream)
@@ -20,14 +22,14 @@ defmodule PermastateOperator.Server.OperatorService do
     |> Stream.run()
   end
 
-  def act_on_event_info({:login, data} = _event, stream) do
-    {:ok, _pid} = OperatorServiceSupervisor.add_stream_to_supervisor(data.id, stream)
+  def act_on_event_info({:login, session} = _event, stream) do
+    {:ok, _pid} = OperatorServiceSupervisor.add_stream_to_supervisor(session.app_id, stream)
   end
 
-  def act_on_event_info({:logout, data} = _event, _stream) do
-    OperatorServiceRouter.logout(data.id)
+  def act_on_event_info({:logout, session} = _event, _stream) do
+    OperatorServiceRouter.logout(session.app_id)
   end
 
-  def act_on_event_info({:apply, _}, _stream) do
+  def act_on_event_info({:apply, _data}, _stream) do
   end
 end
