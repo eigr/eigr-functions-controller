@@ -9,7 +9,6 @@ compile:
 	mix compile
 
 build:
-	mix bonny.gen.dockerfile
 	docker build -t ${BONNY_IMAGE} .
 	docker push ${BONNY_IMAGE}:latest
 
