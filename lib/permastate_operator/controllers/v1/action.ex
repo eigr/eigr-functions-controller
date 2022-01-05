@@ -1,14 +1,14 @@
-defmodule PermastateOperator.Controller.V1.StatefulServices do
+defmodule PermastateOperator.Controller.V1.Action do
   @moduledoc """
-  PermastateOperator: StatefulService CRD.
+  PermastateOperator: Action CRD.
 
   ## Kubernetes CRD Spec
-  Eigr StatefulService CRD
+  Eigr Action CRD
 
   ### Examples
   ```
   apiVersion: functions.eigr.io/v1
-  kind: StatefulService
+  kind: Action
   metadata:
     name: shopping-cart
   spec:
@@ -23,7 +23,7 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   @version "v1"
 
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
-  @rule {"apps", ["statefulsets", "deployments"], ["*"]}
+  @rule {"apps", ["deployments"], ["*"]}
 
   # It would be possible to call @group "permastate.eigr.io"
   # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
@@ -31,10 +31,10 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
 
   @scope :namespaced
   @names %{
-    plural: "statefulservices",
-    singular: "statefulservice",
-    kind: "StatefulService",
-    shortNames: ["ss", "stss"]
+    plural: "actions",
+    singular: "action",
+    kind: "Action",
+    shortNames: ["ac", "act", "action", "actions"]
   }
 
   # @additional_printer_columns [
@@ -64,7 +64,7 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   end
 
   @doc """
-  Creates a kubernetes `statefulset`, `service` and `configmap` that runs a "Cloudstate" app.
+  Creates a kubernetes `deployment`, `service` and `configmap` that runs a "Eigr" app.
   """
   @spec add(map()) :: :ok | :error
   @impl Bonny.Controller
@@ -88,7 +88,7 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   end
 
   @doc """
-  Updates `statefulset`, `service` and `configmap` resources.
+  Updates `deployment`, `service` and `configmap` resources.
   """
   @spec modify(map()) :: :ok | :error
   @impl Bonny.Controller
@@ -105,7 +105,7 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   end
 
   @doc """
-  Deletes `statefulset`, `service` and `configmap` resources.
+  Deletes `deployment`, `service` and `configmap` resources.
   """
   @spec delete(map()) :: :ok | :error
   @impl Bonny.Controller
@@ -123,18 +123,18 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   end
 
   defp parse(%{
-         "kind" => "StatefulService",
+         "kind" => "Action",
          "apiVersion" => "functions.eigr.io/v1",
          "metadata" => %{"name" => name, "namespace" => ns},
          "spec" => %{"containers" => containers}
        }) do
-    statefulset = gen_statefulset(ns, name, containers)
+    deployment = gen_deployment(ns, name, containers)
     service = gen_service(ns, name)
     configmap = gen_configmap(ns, "proxy")
 
     %{
       configmap: configmap,
-      statefulset: statefulset,
+      deployment: deployment,
       service: service
     }
   end
@@ -185,7 +185,7 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
     }
   end
 
-  defp gen_statefulset(ns \\ "default", name, replicas \\ 1, containers) do
+  defp gen_deployment(ns \\ "default", name, replicas \\ 1, containers) do
     container = List.first(containers)
     image = container["image"]
 

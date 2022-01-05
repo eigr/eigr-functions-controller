@@ -31,7 +31,7 @@ kubectl get all
 Or simply:
 
 ```
-make build && make apply
+make
 ```
 
 To test the operator you can use the StatefulService CRD found in the example file.

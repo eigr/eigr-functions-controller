@@ -1,8 +1,9 @@
-.PHONY: clean compile build apply example local
+.PHONY: clean compile build install example local
 
 BONNY_IMAGE=eigr/permastate:0.1.29
 
-all: clean compile build apply
+all: clean compile build
+#all: clean compile build install
 
 compile:
 	mix deps.get
@@ -18,7 +19,7 @@ local:
 	kubectl apply -f ./manifest.yaml
 	iex -S mix
 
-apply:
+install:
 	mix compile
 	mix bonny.gen.manifest --image ${BONNY_IMAGE}
 	kubectl apply -f ./manifest.yaml

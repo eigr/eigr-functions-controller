@@ -14,7 +14,8 @@ defmodule PermastateOperator do
   def start(_type, _args) do
     children = [
       @grpc_server,
-      PermastateOperator.Controller.V1alpha1.StatefulServices
+      PermastateOperator.Controller.V1.Action,
+      PermastateOperator.Controller.V1.StatefulServices
     ]
 
     opts = [strategy: :one_for_one]
