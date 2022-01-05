@@ -1,5 +1,5 @@
 ---
-apiVersion: cloudstate.io/v1alpha1
+apiVersion: eigr.io/v1alpha1
 kind: StatefulService
 metadata:
   name: shopping-cart

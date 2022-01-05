@@ -3,11 +3,11 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   PermastateOperator: StatefulService CRD.
 
   ## Kubernetes CRD Spec
-  Cloudstate StatefulService CRD
+  Eigr StatefulService CRD
 
   ### Examples
   ```
-  apiVersion: cloudstate.io/v1alpha1
+  apiVersion: functions.eigr.io/v1
   kind: StatefulService
   metadata:
     name: shopping-cart
@@ -20,14 +20,14 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
   require Logger
   use Bonny.Controller
 
-  @version "v1alpha1"
+  @version "v1"
 
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
   @rule {"apps", ["statefulsets", "deployments"], ["*"]}
 
   # It would be possible to call @group "permastate.eigr.io"
   # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
-  @group "cloudstate.io"
+  @group "functions.eigr.io"
 
   @scope :namespaced
   @names %{
@@ -124,7 +124,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
 
   defp parse(%{
          "kind" => "StatefulService",
-         "apiVersion" => "cloudstate.io/v1alpha1",
+         "apiVersion" => "functions.eigr.io/v1",
          "metadata" => %{"name" => name, "namespace" => ns},
          "spec" => %{"containers" => containers}
        }) do
@@ -156,7 +156,7 @@ defmodule PermastateOperator.Controller.V1alpha1.StatefulServices do
         "PROXY_HTTP_PORT" => "9001",
         "PROXY_PORT" => "9000",
         "PROXY_ROOT_TEMPLATE_PATH" => "/home/app",
-        "PROXY_UDS_ADDRESS" => "/var/run/cloudstate.sock",
+        "PROXY_UDS_ADDRESS" => "/var/run/eigr/functions.sock",
         "PROXY_UDS_MODE" => "false",
         "USER_FUNCTION_HOST" => "127.0.0.1",
         "USER_FUNCTION_PORT" => "8080"
