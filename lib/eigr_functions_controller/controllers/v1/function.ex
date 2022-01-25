@@ -3,7 +3,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
    Eigr.FunctionsController: Function CRD.
 
   ## Kubernetes CRD Spec
-  Eigr Action CRD
+  Eigr Function CRD
 
   ### Examples
   ```yaml

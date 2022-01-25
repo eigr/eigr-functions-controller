@@ -3,7 +3,7 @@ apiVersion: functions.eigr.io/v1
 kind: Function
 metadata:
   name: shopping-cart
-  namespace: eigr-functions
+  namespace: default
   replicas: 1
 spec:
   containers:
