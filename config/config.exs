@@ -7,13 +7,20 @@ config :logger,
     [level_lower_than: :debug]
   ]
 
+# config :k8s,
+#  clusters: %{
+#    default: %{
+#      conn: "~/.kube/config",
+#      conf_opts: [context: "kind-default"]
+#    }
+#  }
+
 config :bonny,
   # Add each CRD Controller module for this operator to load here
   controllers: [
     Eigr.FunctionsController.Controllers.V1.Function,
     Eigr.FunctionsController.Controllers.V1.PersistentFunction
   ],
-  cluster_name: :default,
   namespace: :all,
 
   #   # Set the Kubernetes API group for this operator.
@@ -45,3 +52,5 @@ config :bonny,
 
 #   # Defaults to "current-context" if a config file is provided, override user, cluster. or context here
 #   kubeconf_opts: []
+
+import_config "#{config_env()}.exs"

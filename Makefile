@@ -12,14 +12,14 @@ compile:
 build:
 	docker build -t ${BONNY_IMAGE} .
 	docker push ${BONNY_IMAGE}
-	mix bonny.gen.manifest --out eigr-functions.yaml -n eigr-functions --image ${BONNY_IMAGE}
+	MIX_ENV=dev mix bonny.gen.manifest --out eigr-functions.yaml -n eigr-functions --image ${BONNY_IMAGE}
 
 local:
 	- rm manifest.yaml
 	kubectl create namespace eigr-functions	
-	mix bonny.gen.manifest --out dev.yaml -n eigr-functions
+	MIX_ENV=dev mix bonny.gen.manifest --out dev.yaml -n eigr-functions
 	kubectl apply -f ./dev.yaml
-	iex -S mix
+	MIX_ENV=dev iex -S mix
 
 install:
 	MIX_ENV=prod mix compile

@@ -95,7 +95,7 @@ spec:
       - funcs
       - functions
     singular: function
-  scope: Namespaced
+  scope: Cluster
   version: v1
 
 ---
@@ -128,7 +128,7 @@ spec:
       - persistentfunction
       - persistentfunctions
     singular: persistentfunction
-  scope: Namespaced
+  scope: Cluster
   version: v1
 
 ---

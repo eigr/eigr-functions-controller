@@ -29,7 +29,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
   @rule {"apps", ["deployments"], ["*"]}
 
-  @scope :namespaced
+  @scope :cluster
   @names %{
     plural: "functions",
     singular: "function",
@@ -131,9 +131,36 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   end
 
   defp parse(%{
-         "kind" => "Function",
          "apiVersion" => "functions.eigr.io/v1",
-         "metadata" => %{"name" => name, "namespace" => ns},
+         "kind" => "Function",
+         "metadata" => %{
+           "name" => name
+         },
+         "spec" => %{"containers" => containers}
+       }) do
+    deployment = gen_deployment("default", name, containers)
+    service = gen_service("default", name)
+    configmap = gen_configmap("default", "proxy")
+
+    %{
+      configmap: configmap,
+      deployment: deployment,
+      service: service
+    }
+  end
+
+  defp parse(%{
+         "apiVersion" => "functions.eigr.io/v1",
+         "kind" => "Function",
+         "metadata" => %{
+           "annotations" => _annotations,
+           "creationTimestamp" => creationTimestamp,
+           "generation" => generation,
+           "name" => name,
+           "namespace" => ns,
+           "resourceVersion" => resourceVersion,
+           "replicas" => replicas
+         },
          "spec" => %{"containers" => containers}
        }) do
     deployment = gen_deployment(ns, name, containers)

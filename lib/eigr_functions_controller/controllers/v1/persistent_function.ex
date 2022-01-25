@@ -48,7 +48,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.PersistentFunction do
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
   @rule {"apps", ["statefulsets", "deployments"], ["*"]}
 
-  @scope :namespaced
+  @scope :cluster
   @names %{
     plural: "persistentfunctions",
     singular: "persistentfunction",
