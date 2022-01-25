@@ -1,14 +1,14 @@
-defmodule PermastateOperator.Controller.V1.Action do
+defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @moduledoc """
-  PermastateOperator: Action CRD.
+   Eigr.FunctionsController: Function CRD.
 
   ## Kubernetes CRD Spec
   Eigr Action CRD
 
   ### Examples
-  ```
+  ```yaml
   apiVersion: functions.eigr.io/v1
-  kind: Action
+  kind: Function
   metadata:
     name: shopping-cart
   spec:
@@ -20,21 +20,30 @@ defmodule PermastateOperator.Controller.V1.Action do
   require Logger
   use Bonny.Controller
 
+  # It would be possible to call @group "functions.eigr.io"
+  # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
+  @group "functions.eigr.io"
+
   @version "v1"
 
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
   @rule {"apps", ["deployments"], ["*"]}
 
-  # It would be possible to call @group "permastate.eigr.io"
-  # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
-  @group "functions.eigr.io"
-
   @scope :namespaced
   @names %{
-    plural: "actions",
-    singular: "action",
-    kind: "Action",
-    shortNames: ["ac", "act", "action", "actions"]
+    plural: "functions",
+    singular: "function",
+    kind: "Function",
+    shortNames: [
+      "f",
+      "fs",
+      "fc",
+      "fcs",
+      "func",
+      "function",
+      "funcs",
+      "functions"
+    ]
   }
 
   # @additional_printer_columns [
@@ -46,12 +55,12 @@ defmodule PermastateOperator.Controller.V1.Action do
   #  }
   # ]
 
-  def child_spec(_arg) do
-    %{
-      id: __MODULE__,
-      start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
-    }
-  end
+  # def child_spec(_arg) do
+  #  %{
+  #    id: __MODULE__,
+  #    start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
+  #  }
+  # end
 
   @doc """
   Called periodically for each existing CustomResource to allow for reconciliation.
@@ -74,13 +83,12 @@ defmodule PermastateOperator.Controller.V1.Action do
 
     with {:ok, _} <- K8s.Client.create(resources.service) |> run(),
          {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
-      resource_res = K8s.Client.create(resources.statefulset) |> run()
+      resource_res = K8s.Client.create(resources.deployment) |> run()
       Logger.info("service result: #{inspect(resource_res)}")
 
       case resource_res do
         {:ok, _} -> :ok
         {:error, error} -> {:error, error}
-        _ -> {:error}
       end
     else
       {:error, error} -> {:error, error}
@@ -97,7 +105,7 @@ defmodule PermastateOperator.Controller.V1.Action do
 
     with {:ok, _} <- K8s.Client.patch(resources.service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.patch(resources.statefulset) |> run() do
+         {:ok, _} <- K8s.Client.patch(resources.deployment) |> run() do
       :ok
     else
       {:error, error} -> {:error, error}
@@ -115,7 +123,7 @@ defmodule PermastateOperator.Controller.V1.Action do
 
     with {:ok, _} <- K8s.Client.delete(resources.service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.delete(resources.statefulset) |> run() do
+         {:ok, _} <- K8s.Client.delete(resources.deployment) |> run() do
       :ok
     else
       {:error, error} -> {:error, error}
@@ -123,7 +131,7 @@ defmodule PermastateOperator.Controller.V1.Action do
   end
 
   defp parse(%{
-         "kind" => "Action",
+         "kind" => "Function",
          "apiVersion" => "functions.eigr.io/v1",
          "metadata" => %{"name" => name, "namespace" => ns},
          "spec" => %{"containers" => containers}
@@ -164,7 +172,7 @@ defmodule PermastateOperator.Controller.V1.Action do
     }
   end
 
-  defp gen_service(ns, name) do
+  defp gen_service(ns, _name) do
     %{
       "apiVersion" => "v1",
       "kind" => "Service",

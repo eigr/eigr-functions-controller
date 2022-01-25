@@ -1,4 +1,4 @@
-defmodule PermastateOperator.Server.OperatorService do
+defmodule Eigr.FunctionsController.Server.OperatorService do
   @moduledoc """
   gRPC OperatorService
   """

@@ -1,21 +1,25 @@
-# PermastateOperator
+# Eigr Functions
 
-**TODO: Add description**
+The eigr serverless compute project
 
-## Installation
+## Install
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `permastate_operator` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:permastate_operator, "~> 0.1.0"}
-  ]
-end
+```shell
+kubectl apply -f https://github.com/eigr/eigr-functions-controller/blob/main/manifests/manifest.yaml
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/permastate_operator](https://hexdocs.pm/permastate_operator).
+## Usage
 
+Apply Function CRD to create k8s resources
+
+```shell
+cat <<EOF | kubectl apply --filename -
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: shopping-cart
+spec:
+  containers:
+  - image: my-docker-hub-username/shopping-cart:latest
+EOF
+```

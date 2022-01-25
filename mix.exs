@@ -1,13 +1,13 @@
-defmodule PermastateOperator.MixProject do
+defmodule Eigr.FunctionsController.MixProject do
   use Mix.Project
 
-  @app :permastate_operator
+  @app :eigr_functions_controller
 
   def project do
     [
       app: @app,
       version: "0.1.0",
-      elixir: "~> 1.9",
+      elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       releases: [{@app, release()}]
@@ -17,7 +17,8 @@ defmodule PermastateOperator.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :observer],
+      mod: {Eigr.FunctionsController, []}
     ]
   end
 
@@ -40,9 +41,12 @@ defmodule PermastateOperator.MixProject do
   defp release do
     [
       overwrite: true,
-      cookie: "#{@app}_cookie",
-      steps: [:assemble, &Bakeware.assemble/1],
-      bakeware: [compression_level: 19]
+      cookie: "#{@app}_cookie"
+      # steps: [
+      #  :assemble,
+      #  &Bakeware.assemble/1
+      # ],
+      # bakeware: [compression_level: 19]
     ]
   end
 end

@@ -29,12 +29,19 @@ RUN mix release
 #########################
 FROM alpine:3
 
-RUN apk add --update openssl zstd
+ENV MIX_ENV=prod
 
+RUN apk upgrade --no-cache && \
+    apk add --no-cache --update openssl zstd libgcc libstdc++ ncurses-libs
+
+RUN addgroup -S app && adduser -S app -G app
 WORKDIR /home/app
 
-COPY --from=builder /app/_build/prod/rel/bakeware/permastate_operator .
+#COPY --from=builder /app/_build/prod/rel/bakeware/eigr_functions_controller .
+COPY --from=builder /app/_build/ .
 
-RUN chown -R nobody: /home/app
+RUN chown -R app: /home/app
+USER app
 
-CMD ["./permastate_operator"]
+#CMD ["./eigr_functions_controller", "start"]
+CMD ["./prod/rel/eigr_functions_controller/bin/eigr_functions_controller", "start"]

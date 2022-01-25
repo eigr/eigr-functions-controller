@@ -1,9 +1,9 @@
 ---
-apiVersion: eigr.io/v1alpha1
-kind: StatefulService
+apiVersion: functions.eigr.io/v1
+kind: Function
 metadata:
   name: shopping-cart
-  namespace: default
+  namespace: eigr-functions
   replicas: 1
 spec:
   containers:

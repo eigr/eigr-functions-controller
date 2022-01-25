@@ -1,6 +1,6 @@
 .PHONY: clean compile build install example local
 
-BONNY_IMAGE=eigr/permastate:0.1.29
+BONNY_IMAGE=ghcr.io/eigr/functions-controller:0.1.35
 
 all: clean compile build
 #all: clean compile build install
@@ -11,18 +11,21 @@ compile:
 
 build:
 	docker build -t ${BONNY_IMAGE} .
-	docker push ${BONNY_IMAGE}:latest
+	docker push ${BONNY_IMAGE}
+	mix bonny.gen.manifest --out eigr-functions.yaml -n eigr-functions --image ${BONNY_IMAGE}
 
 local:
 	- rm manifest.yaml
-	mix bonny.gen.manifest
-	kubectl apply -f ./manifest.yaml
+	kubectl create namespace eigr-functions	
+	mix bonny.gen.manifest --out dev.yaml -n eigr-functions
+	kubectl apply -f ./dev.yaml
 	iex -S mix
 
 install:
-	mix compile
-	mix bonny.gen.manifest --image ${BONNY_IMAGE}
-	kubectl apply -f ./manifest.yaml
+	MIX_ENV=prod mix compile
+	MIX_ENV=prod mix bonny.gen.manifest --out eigr-functions.yaml -n eigr-functions --image ${BONNY_IMAGE}
+	kubectl create namespace eigr-functions	
+	kubectl apply -f ./eigr-functions.yaml
 	kubectl get all
 
 example:
@@ -30,8 +33,9 @@ example:
 	kubectl get all
 
 clean:
+	- kubectl delete namespace eigr-functions
 	- kubectl delete -f ./example.yaml
 	sleep 5
-	- kubectl delete -f ./manifest.yaml
-	- rm manifest.yaml
+	- kubectl delete -f ./eigr-functions.yaml
+	- rm eigr-functions.yaml
 	- rm -rf mix.lock _build deps

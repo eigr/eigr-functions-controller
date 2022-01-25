@@ -1,4 +1,4 @@
-defmodule PermastateOperator.Server.GrpcEndpoint do
+defmodule Eigr.FunctionsController.Server.GrpcEndpoint do
   @moduledoc false
   use GRPC.Endpoint
 
@@ -6,7 +6,7 @@ defmodule PermastateOperator.Server.GrpcEndpoint do
   intercept(GRPCPrometheus.ServerInterceptor)
 
   services = [
-    PermastateOperator.Server.OperatorService
+    Eigr.FunctionsController.Server.OperatorService
   ]
 
   run(services)

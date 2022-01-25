@@ -1,7 +1,7 @@
-defmodule PermastateOperator.Controller.V1alpha1.StatefulServicesTest do
+defmodule Eigr.FunctionsController.Controller.V1alpha1.StatefulServicesTest do
   @moduledoc false
   use ExUnit.Case, async: false
-  alias PermastateOperator.Controller.V1alpha1.StatefulServices
+  alias Eigr.FunctionsController.Controller.V1alpha1.StatefulServices
 
   describe "add/1" do
     @tag :skip

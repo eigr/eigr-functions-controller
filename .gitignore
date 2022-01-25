@@ -22,5 +22,5 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-permastate_operator-*.tar
+eigr_functions_controller-*.tar
 

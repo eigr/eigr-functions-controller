@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package io.eigr.permastate.operator;
+package io.eigr.functions.controller;
 
 message Resource {
     string name = 1;

@@ -1,40 +1,70 @@
-defmodule PermastateOperator.Controller.V1.StatefulServices do
+defmodule Eigr.FunctionsController.Controllers.V1.PersistentFunction do
   @moduledoc """
-  PermastateOperator: StatefulService CRD.
+   Eigr.FunctionsController: PersistentFunction CRD.
 
   ## Kubernetes CRD Spec
-  Eigr StatefulService CRD
+  Eigr PersistentFunction CRD
 
   ### Examples
   ```
   apiVersion: functions.eigr.io/v1
-  kind: StatefulService
+  kind: PersistentFunction
   metadata:
     name: shopping-cart
   spec:
+    type: InMemory # this is default if ommited
     containers:
-    - image: my-docker-hub-username/shopping-cart:latest
+      - image: my-docker-hub-username/shopping-cart:latest
+  ```
+
+  Or with a real persistent store database:
+
+  ```
+  apiVersion: functions.eigr.io/v1
+  kind: PersistentFunction
+  metadata:
+    name: shopping-cart
+  spec:
+    type: Postgres
+    deployment: Unmanaged
+    config:
+      service: postgresql.default.svc.cluster.local
+      credentialsFromSecret:
+        name: postgres-credentials
+    containers:
+      - image: my-docker-hub-username/shopping-cart:latest
   ```
   """
 
   require Logger
   use Bonny.Controller
 
+  # It would be possible to call @group "functions.eigr.io"
+  # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
+  @group "functions.eigr.io"
+
   @version "v1"
 
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
   @rule {"apps", ["statefulsets", "deployments"], ["*"]}
 
-  # It would be possible to call @group "permastate.eigr.io"
-  # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
-  @group "functions.eigr.io"
-
   @scope :namespaced
   @names %{
-    plural: "statefulservices",
-    singular: "statefulservice",
-    kind: "StatefulService",
-    shortNames: ["ss", "stss"]
+    plural: "persistentfunctions",
+    singular: "persistentfunction",
+    kind: "PersistentFunction",
+    shortNames: [
+      "pf",
+      "pfs",
+      "pfc",
+      "pfcs",
+      "pfunc",
+      "pfunction",
+      "pfuncs",
+      "pfunctions",
+      "persistentfunction",
+      "persistentfunctions"
+    ]
   }
 
   # @additional_printer_columns [
@@ -46,12 +76,12 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   #  }
   # ]
 
-  def child_spec(_arg) do
-    %{
-      id: __MODULE__,
-      start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
-    }
-  end
+  # def child_spec(_arg) do
+  #  %{
+  #    id: __MODULE__,
+  #    start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
+  #  }
+  # end
 
   @doc """
   Called periodically for each existing CustomResource to allow for reconciliation.
@@ -80,7 +110,6 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
       case resource_res do
         {:ok, _} -> :ok
         {:error, error} -> {:error, error}
-        _ -> {:error}
       end
     else
       {:error, error} -> {:error, error}
@@ -123,7 +152,7 @@ defmodule PermastateOperator.Controller.V1.StatefulServices do
   end
 
   defp parse(%{
-         "kind" => "StatefulService",
+         "kind" => "PersistentFunction",
          "apiVersion" => "functions.eigr.io/v1",
          "metadata" => %{"name" => name, "namespace" => ns},
          "spec" => %{"containers" => containers}
