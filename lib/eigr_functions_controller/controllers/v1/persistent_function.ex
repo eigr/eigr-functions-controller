@@ -76,13 +76,6 @@ defmodule Eigr.FunctionsController.Controllers.V1.PersistentFunction do
   #  }
   # ]
 
-  # def child_spec(_arg) do
-  #  %{
-  #    id: __MODULE__,
-  #    start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
-  #  }
-  # end
-
   @doc """
   Called periodically for each existing CustomResource to allow for reconciliation.
   """

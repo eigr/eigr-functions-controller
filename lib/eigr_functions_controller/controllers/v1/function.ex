@@ -55,13 +55,6 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   #  }
   # ]
 
-  # def child_spec(_arg) do
-  #  %{
-  #    id: __MODULE__,
-  #    start: {Bonny.Controller, :start_link, [handler: __MODULE__]}
-  #  }
-  # end
-
   @doc """
   Called periodically for each existing CustomResource to allow for reconciliation.
   """
@@ -69,7 +62,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @impl Bonny.Controller
   def reconcile(payload) do
     track_event(:reconcile, payload)
-    :ok
+    modify(payload)
   end
 
   @doc """
@@ -81,7 +74,8 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     track_event(:add, payload)
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.create(resources.service) |> run(),
+    with {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
+         {:ok, _} <- K8s.Client.create(resources.cluster_service) |> run(),
          {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
       resource_res = K8s.Client.create(resources.deployment) |> run()
       Logger.info("service result: #{inspect(resource_res)}")
@@ -103,7 +97,8 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   def modify(payload) do
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.patch(resources.service) |> run(),
+    with {:ok, _} <- K8s.Client.patch(resources.app_service) |> run(),
+         {:ok, _} <- K8s.Client.patch(resources.cluster_service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.configmap) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.deployment) |> run() do
       :ok
@@ -121,7 +116,8 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     track_event(:delete, payload)
     resources = parse(payload)
 
-    with {:ok, _} <- K8s.Client.delete(resources.service) |> run(),
+    with {:ok, _} <- K8s.Client.delete(resources.app_service) |> run(),
+         {:ok, _} <- K8s.Client.delete(resources.cluster_service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.configmap) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.deployment) |> run() do
       :ok
@@ -139,13 +135,15 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
          "spec" => %{"containers" => containers}
        }) do
     deployment = gen_deployment("default", name, containers)
-    service = gen_service("default", name)
+    app_service = gen_app_service("default", name)
+    cluster_service = gen_cluster_ns_service("default", name)
     configmap = gen_configmap("default", "proxy")
 
     %{
       configmap: configmap,
       deployment: deployment,
-      service: service
+      app_service: app_service,
+      cluster_service: cluster_service
     }
   end
 
@@ -164,13 +162,15 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
          "spec" => %{"containers" => containers}
        }) do
     deployment = gen_deployment(ns, name, containers)
-    service = gen_service(ns, name)
+    app_service = gen_app_service(ns, name)
+    cluster_service = gen_cluster_ns_service(ns, name)
     configmap = gen_configmap(ns, "proxy")
 
     %{
       configmap: configmap,
       deployment: deployment,
-      service: service
+      app_service: app_service,
+      cluster_service: cluster_service
     }
   end
 
@@ -199,7 +199,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     }
   end
 
-  defp gen_service(ns, _name) do
+  defp gen_cluster_ns_service(ns, _name) do
     %{
       "apiVersion" => "v1",
       "kind" => "Service",
@@ -212,9 +212,26 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
         "clusterIP" => "None",
         "selector" => %{"cluster-name" => "proxy"},
         "ports" => [
-          %{"port" => 4369, "name" => "epmd"},
-          %{"port" => 9000, "name" => "proxy"},
-          %{"port" => 9001, "name" => "http"}
+          %{"port" => 4369, "name" => "epmd"}
+        ]
+      }
+    }
+  end
+
+  defp gen_app_service(ns, name) do
+    %{
+      "apiVersion" => "v1",
+      "kind" => "Service",
+      "metadata" => %{
+        "name" => "#{name}-svc",
+        "namespace" => ns
+      },
+      "spec" => %{
+        "type" => "ClusterIP",
+        "selector" => %{"app" => name},
+        "ports" => [
+          %{"name" => "proxy", "port" => 9000, "targetPort" => 9000},
+          %{"name" => "http", "port" => 9001, "targetPort" => 9000}
         ]
       }
     }
