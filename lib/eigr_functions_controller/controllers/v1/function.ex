@@ -12,13 +12,52 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   metadata:
     name: shopping-cart
   spec:
-    containers:
-    - image: my-docker-hub-username/shopping-cart:latest
+    backend:
+      image: my-docker-hub-username/shopping-cart:latest
+      portBindings:
+        type: http
+        port: 8080
+        #type: uds
+        #port: /var/run/shopping-cart.sock
   ```
   """
 
   require Logger
   use Bonny.Controller
+
+  @port_binding_uds_default "/var/run/eigr/functions.sock"
+
+  @default_params %{
+    "language" => "none",
+    "maxReplicas" => 100,
+    "minReplicas" => 1,
+    "portBinding" => %{"port" => 8080, "type" => "grpc"},
+    "runtime" => "grpc",
+    "resources" => %{
+      "limits" => %{"cpu" => "100m", "memory" => "100Mi"},
+      "requests" => %{"cpu" => "100m", "memory" => "100Mi"}
+    }
+  }
+
+  @generic_lang_resources_limits %{
+    "limits" => %{"cpu" => "500m", "memory" => "512Mi"},
+    "requests" => %{"cpu" => "100m", "memory" => "100Mi"}
+  }
+
+  @go_lang_resources_limits %{
+    "limits" => %{"cpu" => "500m", "memory" => "1024Mi"},
+    "requests" => %{"cpu" => "200m", "memory" => "70Mi"}
+  }
+
+  @java_lang_resources_limits %{
+    "limits" => %{"cpu" => "500m", "memory" => "2048Mi"},
+    "requests" => %{"cpu" => "200m", "memory" => "100Mi"}
+  }
+
+  @python_lang_resources_limits %{
+    "limits" => %{"cpu" => "500m", "memory" => "512Mi"},
+    "requests" => %{"cpu" => "100m", "memory" => "70Mi"}
+  }
 
   # It would be possible to call @group "functions.eigr.io"
   # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
@@ -132,9 +171,10 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
          "metadata" => %{
            "name" => name
          },
-         "spec" => %{"containers" => containers}
+         "spec" => %{"backend" => backend}
        }) do
-    deployment = gen_deployment("default", name, containers)
+    backend_params = Map.merge(@default_params, backend)
+    deployment = gen_deployment("default", name, backend_params)
     app_service = gen_app_service("default", name)
     cluster_service = gen_cluster_ns_service("default", name)
     configmap = gen_configmap("default", "proxy")
@@ -151,17 +191,13 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
          "apiVersion" => "functions.eigr.io/v1",
          "kind" => "Function",
          "metadata" => %{
-           "annotations" => _annotations,
-           "creationTimestamp" => creationTimestamp,
-           "generation" => generation,
            "name" => name,
-           "namespace" => ns,
-           "resourceVersion" => resourceVersion,
-           "replicas" => replicas
+           "namespace" => ns
          },
-         "spec" => %{"containers" => containers}
+         "spec" => %{"backend" => backend}
        }) do
-    deployment = gen_deployment(ns, name, containers)
+    backend_params = Map.merge(@default_params, backend)
+    deployment = gen_deployment(ns, name, backend_params)
     app_service = gen_app_service(ns, name)
     cluster_service = gen_cluster_ns_service(ns, name)
     configmap = gen_configmap(ns, "proxy")
@@ -237,13 +273,23 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     }
   end
 
-  defp gen_deployment(ns \\ "default", name, replicas \\ 1, containers) do
-    container = List.first(containers)
-    image = container["image"]
+  defp get_limits(resources, "go"), do: Map.merge(@go_lang_resources_limits, resources)
+  defp get_limits(resources, "java"), do: Map.merge(@java_lang_resources_limits, resources)
+  defp get_limits(resources, "none"), do: Map.merge(@generic_lang_resources_limits, resources)
+  defp get_limits(resources, "python"), do: Map.merge(@python_lang_resources_limits, resources)
+  defp get_limits(resources, _), do: Map.merge(@generic_lang_resources_limits, resources)
+
+  defp gen_deployment(ns, name, backend) do
+    image = Map.get(backend, "image")
+    language = Map.get(backend, "language")
+    replicas = Map.get(backend, "minReplicas")
+    port = Map.get(backend, "portBinding") |> Map.get("port")
+    resources = Map.get(backend, "resources") |> get_limits(language)
+    _port_binding_type = Map.get(backend, "portBinding") |> Map.get("type")
 
     %{
       "apiVersion" => "apps/v1",
-      "kind" => "StatefulSet",
+      "kind" => "Deployment",
       "metadata" => %{
         "name" => name,
         "namespace" => ns,
@@ -253,7 +299,6 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
         "selector" => %{
           "matchLabels" => %{"app" => name, "cluster-name" => "proxy"}
         },
-        "serviceName" => "proxy-headless-svc",
         "replicas" => replicas,
         "template" => %{
           "metadata" => %{
@@ -312,8 +357,9 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
               %{
                 "name" => "user-function",
                 "image" => image,
+                "resources" => resources,
                 "ports" => [
-                  %{"containerPort" => 8080}
+                  %{"containerPort" => port}
                 ]
               }
             ]

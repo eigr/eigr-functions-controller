@@ -1,0 +1,26 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: shopping-cart # Mandatory. Name of the function
+  # The namespace where the role will be deployed to the cluster. 
+  # All proxies deployed in a given namespace form a cluster, that is, they are visible to each other.
+  # Proxies that exist in other namespaces are invisible to those in this namespace
+  namespace: default # Optional. Default namespace is "default"
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest # Mandatory
+    language: python # Optional. Default is none.This parameter is only used to define the defaults resource limits of a user container.
+    minReplicas: 1   # Optional. Default is 1
+    maxReplicas: 100 # Optional. Default is 100
+    resources: # Optional
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: 100m
+        memory: 100Mi
+    runtime: grpc # Optional. Default grpc. Currently only one `grpc` runtime is provided, in the future we will support webassembly/wasm runtimes    
+    portBindings: # Optional
+      type: http # uds, grpc
+      port: 8080 # 8080, /var/run/eigr/functions.sock

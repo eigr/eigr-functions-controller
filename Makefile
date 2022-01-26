@@ -29,12 +29,12 @@ install:
 	kubectl get all
 
 example:
-	kubectl apply -f ./example.yaml
+	kubectl apply -f ./function-example.yaml
 	kubectl get all
 
 clean:
 	- kubectl delete namespace eigr-functions
-	- kubectl delete -f ./example.yaml
+	- kubectl delete -f ./function-example.yaml
 	sleep 5
 	- kubectl delete -f ./eigr-functions.yaml
 	- rm eigr-functions.yaml
