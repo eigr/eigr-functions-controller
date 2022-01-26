@@ -168,12 +168,21 @@ rules:
       - services
       - pods
       - configmaps
+      - hpa
     verbs:
       - '*'
   - apiGroups:
       - apps
     resources:
       - deployments
+      - hpa
+    verbs:
+      - '*'
+  - apiGroups:
+      - autoscaling
+    resources:
+      - hpa
+      - horizontalpodautoscaler
     verbs:
       - '*'
   - apiGroups:

@@ -28,9 +28,14 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @port_binding_uds_default "/var/run/eigr/functions.sock"
 
   @default_params %{
+    "autoscaler" => %{
+      "strategy" => "hpa",
+      "minReplicas" => 1,
+      "maxReplicas" => 100,
+      "averageCpuUtilizationPercentage" => 80,
+      "averageMemoryUtilizationValue" => "100Mi"
+    },
     "language" => "none",
-    "maxReplicas" => 100,
-    "minReplicas" => 1,
     "portBinding" => %{"port" => 8080, "type" => "grpc"},
     "runtime" => "grpc",
     "resources" => %{
@@ -65,8 +70,9 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
 
   @version "v1"
 
-  @rule {"", ["services", "pods", "configmaps"], ["*"]}
   @rule {"apps", ["deployments"], ["*"]}
+  @rule {"autoscaling", ["horizontalpodautoscaler"], ["*"]}
+  @rule {"", ["services", "pods", "configmaps", "horizontalpodautoscaler"], ["*"]}
 
   @scope :cluster
   @names %{
@@ -115,8 +121,9 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
 
     with {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.create(resources.cluster_service) |> run(),
-         {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
-      resource_res = K8s.Client.create(resources.deployment) |> run()
+         {:ok, _} <- K8s.Client.create(resources.configmap) |> run(),
+         {:ok, _} <- K8s.Client.create(resources.deployment) |> run() do
+      resource_res = K8s.Client.create(resources.autoscaler) |> run()
       Logger.info("service result: #{inspect(resource_res)}")
 
       case resource_res do
@@ -139,7 +146,8 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     with {:ok, _} <- K8s.Client.patch(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.cluster_service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.patch(resources.deployment) |> run() do
+         {:ok, _} <- K8s.Client.patch(resources.deployment) |> run(),
+         {:ok, _} <- K8s.Client.patch(resources.autoscaler) |> run() do
       :ok
     else
       {:error, error} -> {:error, error}
@@ -158,7 +166,8 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     with {:ok, _} <- K8s.Client.delete(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.cluster_service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.delete(resources.deployment) |> run() do
+         {:ok, _} <- K8s.Client.delete(resources.deployment) |> run(),
+         {:ok, _} <- K8s.Client.delete(resources.autoscaler) |> run() do
       :ok
     else
       {:error, error} -> {:error, error}
@@ -175,6 +184,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
        }) do
     backend_params = Map.merge(@default_params, backend)
     deployment = gen_deployment("default", name, backend_params)
+    autoscaler = gen_autoscaler("default", name, backend_params)
     app_service = gen_app_service("default", name)
     cluster_service = gen_cluster_ns_service("default", name)
     configmap = gen_configmap("default", "proxy")
@@ -182,6 +192,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     %{
       configmap: configmap,
       deployment: deployment,
+      autoscaler: autoscaler,
       app_service: app_service,
       cluster_service: cluster_service
     }
@@ -198,6 +209,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
        }) do
     backend_params = Map.merge(@default_params, backend)
     deployment = gen_deployment(ns, name, backend_params)
+    autoscaler = gen_autoscaler(ns, name, backend_params)
     app_service = gen_app_service(ns, name)
     cluster_service = gen_cluster_ns_service(ns, name)
     configmap = gen_configmap(ns, "proxy")
@@ -205,6 +217,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     %{
       configmap: configmap,
       deployment: deployment,
+      autoscaler: autoscaler,
       app_service: app_service,
       cluster_service: cluster_service
     }
@@ -279,10 +292,62 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   defp get_limits(resources, "python"), do: Map.merge(@python_lang_resources_limits, resources)
   defp get_limits(resources, _), do: Map.merge(@generic_lang_resources_limits, resources)
 
+  defp gen_autoscaler(ns, name, backend) do
+    strategy = Map.get(backend, "autoscaler") |> Map.get("strategy")
+    minReplicas = Map.get(backend, "autoscaler") |> Map.get("minReplicas")
+    maxReplicas = Map.get(backend, "autoscaler") |> Map.get("maxReplicas")
+
+    averageCpuUtilizationPercentage =
+      Map.get(backend, "autoscaler") |> Map.get("averageCpuUtilizationPercentage")
+
+    averageMemoryUtilizationValue =
+      Map.get(backend, "autoscaler") |> Map.get("averageMemoryUtilizationValue")
+
+    %{
+      "apiVersion" => "autoscaling/v2beta2",
+      "kind" => "HorizontalPodAutoscaler",
+      "metadata" => %{
+        "name" => "#{name}-#{strategy}-autoscaler",
+        "namespace" => ns
+      },
+      "spec" => %{
+        "scaleTargetRef" => %{
+          "apiVersion" => "apps/v1",
+          "kind" => "Deployment",
+          "name" => "#{name}"
+        },
+        "minReplicas" => minReplicas,
+        "maxReplicas" => maxReplicas,
+        "metrics" => [
+          %{
+            "type" => "Resource",
+            "resource" => %{
+              "name" => "cpu",
+              "target" => %{
+                "type" => "Utilization",
+                "averageUtilization" => averageCpuUtilizationPercentage
+              }
+            }
+          },
+          %{
+            "type" => "Resource",
+            "resource" => %{
+              "name" => "memory",
+              "target" => %{
+                "type" => "AverageValue",
+                "averageValue" => averageMemoryUtilizationValue
+              }
+            }
+          }
+        ]
+      }
+    }
+  end
+
   defp gen_deployment(ns, name, backend) do
     image = Map.get(backend, "image")
     language = Map.get(backend, "language")
-    replicas = Map.get(backend, "minReplicas")
+    replicas = Map.get(backend, "autoscaler") |> Map.get("minReplicas")
     port = Map.get(backend, "portBinding") |> Map.get("port")
     resources = Map.get(backend, "resources") |> get_limits(language)
     _port_binding_type = Map.get(backend, "portBinding") |> Map.get("type")

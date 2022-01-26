@@ -11,8 +11,12 @@ spec:
   backend:
     image: cloudstateio/cloudstate-python-tck:latest # Mandatory
     language: python # Optional. Default is none.This parameter is only used to define the defaults resource limits of a user container.
-    minReplicas: 1   # Optional. Default is 1
-    maxReplicas: 100 # Optional. Default is 100
+    autoscaler: # Optional
+      strategy: hpa # Optional. For now, only hpa is supported
+      minReplicas: 1 # Optional. Default is 1
+      maxReplicas: 100 # Optional. Default is 100
+      averageCpuUtilizationPercentage: 80 # Optional. Default is 80
+      averageMemoryUtilizationValue: 100Mi # Optional. Default is 100Mi
     resources: # Optional
       requests:
         cpu: 100m
