@@ -356,6 +356,10 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
       "apiVersion" => "apps/v1",
       "kind" => "Deployment",
       "metadata" => %{
+        "annotations" => %{
+          "functions.eigr.io/controller.version" =>
+            "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}"
+        },
         "name" => name,
         "namespace" => ns,
         "labels" => %{"app" => name, "cluster-name" => "proxy"}
