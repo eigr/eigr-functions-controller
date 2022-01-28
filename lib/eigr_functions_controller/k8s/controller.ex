@@ -11,9 +11,65 @@ defmodule Eigr.FunctionsController.K8S.Controller do
     StatefulSet
   }
 
-  @port_binding_uds_default "/var/run/eigr/functions.sock"
-
   @default_params %{
+    "language" => "none",
+    "runtime" => "grpc",
+    "features" => %{
+      "eventing" => false,
+      "eventingMappings" => %{
+        "sources" => [],
+        "sinks" => []
+      },
+      "typeMappings" => false,
+      "typeMappingsKeys" => [],
+      "httpTranscode" => false,
+      "httpTranscodeMappings" => [
+        %{
+          "serviceName" => "EigrEasterEggFakeService",
+          "rpcMethodName" => "Dialogues",
+          "path" => "/",
+          "body" => "none",
+          "responseBody" => "dialogue",
+          "method" => "GET",
+          "additionalBindings" => [
+            %{
+              "path" => "/scifi/dialogues",
+              "method" => "GET",
+              "body" => "none",
+              "responseBody" => "dialogue"
+            }
+          ]
+        }
+      ]
+    },
+    "expose" => %{
+      "method" => "none",
+      "ingress" => %{
+        "host" => "none",
+        "path" => "/",
+        "use-tls" => false,
+        "tls" => %{
+          "secretName" => "eigr-functions-tls",
+          "cert-manager" => %{
+            "cluster-issuer" => "none",
+            "common-name" => "none",
+            "duration" => "2h",
+            "renew-before" => "1h",
+            "usages" => [],
+            "http01-ingress-class" => "none",
+            "http01-edit-in-place" => "false"
+          }
+        }
+      },
+      "loadbalancer" => %{
+        "serviceName" => "none"
+      },
+      "nodePort" => %{
+        "port" => 8080,
+        "targetPort" => 9000,
+        "nodePort" => 30001
+      }
+    },
     "autoscaler" => %{
       "strategy" => "hpa",
       "minReplicas" => 1,
@@ -21,9 +77,11 @@ defmodule Eigr.FunctionsController.K8S.Controller do
       "averageCpuUtilizationPercentage" => 80,
       "averageMemoryUtilizationValue" => "100Mi"
     },
-    "language" => "none",
-    "portBinding" => %{"port" => 8080, "type" => "grpc"},
-    "runtime" => "grpc",
+    "portBinding" => %{
+      "port" => 8080,
+      "type" => "grpc",
+      "socketPath" => "/var/run/eigr/functions.sock"
+    },
     "resources" => %{
       "limits" => %{"cpu" => "100m", "memory" => "100Mi"},
       "requests" => %{"cpu" => "100m", "memory" => "100Mi"}

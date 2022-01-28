@@ -20,6 +20,90 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   backend:
     image: cloudstateio/cloudstate-python-tck:latest # Mandatory
     language: python # Optional. Default is none.This parameter is only used to define the defaults resource limits of a user container.
+    runtime: grpc # Optional. Default grpc. Currently only one `grpc` runtime is provided, in the future we will support webassembly/wasm runtimes
+    features:
+      eventing: false # Optional. Default is false.
+      eventingMappings:
+        sources:
+          - name: shopping-cart-source
+            serviceName: ShoppingCart
+            rpcMethodName: AddItem
+            type: kafka
+            config:
+              url: kafka:9092
+              topic: shopping-cart-in-events
+              groupId: shopping-cart-group
+              credentials:
+                secrets: kafka-credentials-secret
+                # If the credentials are stored in a secret, the username and password are not needed.
+                username: kafka-user # Use only in local development
+                password: kafka-password # Use only in local development
+        sinks:
+          - name: shopping-cart-sink
+            serviceName: ShoppingCart
+            rpcMethodName: AddItem
+            type: rabbitmq
+            config:
+              url: rabbitmq:9092
+              topic: shopping-cart-out-events
+              credentials:
+                secrets: rabbitmq-credentials-secret
+                # If the credentials are stored in a secret, the username and password are not needed.
+                username: rabbitmq-user # Use only in local development
+                password: rabbitmq-password # Use only in local development
+      typeMappings: false # Optional. Default is false.
+      typeMappingsKeys:
+        - typeName: AddLineItem
+          persistentKey: user_id
+        - typeName: RemoveLineItem
+          persistentKey: user_id
+        - typeName: GetShoppingCart
+          persistentKey: user_id
+      httpTranscode: true # Optional. Default is false.
+      httpTranscodeMappings:
+        - serviceName: ShoppingCart
+          rpcMethodName: AddItem
+          path: /cart/{user_id}/items/add
+          method: POST
+          body: "*"
+        - serviceName: ShoppingCart
+          rpcMethodName: RemoveItem
+          path: /cart/{user_id}/items/{product_id}
+          method: DELETE
+        - serviceName: ShoppingCart
+          rpcMethodName: GetCart
+          path: /cart/{user_id}
+          method: GET
+          additionalBindings:
+            - path: /cart/{user_id}/items
+              method: GET
+              responseBody: "items"
+    expose:
+      method: ingress # Optional. Default is none. Supported values are: ingress, nodeport, loadbalancer
+      ingress:
+        className: nginx
+        host: shopping-cart.eigr.io # Mandatory
+        path: / # Optional. Default is /
+        use-tls: true # Optional. Default is false
+        tls:
+          secretName: shopping-cart-tls # Mandatory if "use-tls" is true. Name of the secret containing the TLS certificate. Defaults to the eigr-functions-tls
+          #cert-manager:
+          #  cluster-issuer: eigr-functions-cluster-issuer # Mandatory
+          #  common-name: shopping-cart.eigr.io # Optional. Default is none
+          #  duration: 2h # Optional. Default is none
+          #  renew-before: 1h # Optional. Default is none
+          #  usages: # Optional. Default is none
+          #    - "digital signature"
+          #    - "key encipherment"
+          #    - "server auth"
+          #  http01-ingress-class: nginx-ingress-controller # Optional. Default is none
+          #  http01-edit-in-place: "true" # Optional. Default is none
+      #loadbalancer: # Optional. Default is none.
+      #  serviceName: shopping-cart # Mandatory
+      #nodePort: # Optional. Default is none. Use this only in development.
+      #  port: 8080
+      #  targetPort: 9000
+      #  nodePort: 30001
     autoscaler: # Optional
       strategy: hpa # Optional. For now, only hpa is supported
       minReplicas: 1 # Optional. Default is 1
@@ -33,10 +117,10 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
       limits:
         cpu: 100m
         memory: 100Mi
-    runtime: grpc # Optional. Default grpc. Currently only one `grpc` runtime is provided, in the future we will support webassembly/wasm runtimes
     portBindings: # Optional
-      type: http # uds, grpc
-      port: 8080 # 8080, /var/run/eigr/functions.sock
+      type: grpc # uds, grpc
+      port: 8080 # 8080
+      socketPath: /var/run/eigr/functions.sock # Optional. Default is none. Only used if type is uds
   ```
   """
 
