@@ -1,6 +1,6 @@
 defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @moduledoc """
-   Eigr.FunctionsController: Function CRD.
+   Eigr.FunctionsController.Controllers.V1.Function: Function CRD.
 
   ## Kubernetes CRD Spec
   Eigr Function CRD
