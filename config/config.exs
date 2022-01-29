@@ -7,14 +7,6 @@ config :logger,
     [level_lower_than: :debug]
   ]
 
-# config :k8s,
-#  clusters: %{
-#    default: %{
-#      conn: "~/.kube/config",
-#      conf_opts: [context: "kind-default"]
-#    }
-#  }
-
 config :bonny,
   # Add each CRD Controller module for this operator to load here
   controllers: [
