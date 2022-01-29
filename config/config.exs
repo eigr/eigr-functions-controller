@@ -7,6 +7,9 @@ config :logger,
     [level_lower_than: :debug]
   ]
 
+config :eigr_functions_controller,
+  proxy_image: "docker.io/eigr/massa-proxy:0.1.31"
+
 config :bonny,
   # Add each CRD Controller module for this operator to load here
   controllers: [

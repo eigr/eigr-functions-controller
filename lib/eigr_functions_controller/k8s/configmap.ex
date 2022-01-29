@@ -2,13 +2,17 @@ defmodule Eigr.FunctionsController.K8S.ConfigMap do
   @behaviour Eigr.FunctionsController.K8S.Manifest
 
   @impl true
-  def manifest(ns, name, params), do: gen_configmap(ns, name)
+  def manifest(ns, name, params), do: gen_configmap(ns, name, params)
 
-  defp gen_configmap(ns, name) do
+  defp gen_configmap(ns, name, _params) do
     %{
       "apiVersion" => "v1",
       "kind" => "ConfigMap",
       "metadata" => %{
+        "labels" => %{
+          "functions.eigr.io/controller.version" =>
+            "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}"
+        },
         "namespace" => ns,
         "name" => "proxy-cm"
       },

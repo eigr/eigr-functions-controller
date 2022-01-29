@@ -9,7 +9,7 @@ defmodule Eigr.FunctionsController.K8S.Ingress do
       "apiVersion" => "networking.k8s.io/v1",
       "kind" => "Ingress",
       "metadata" => %{
-        "annotations" => %{
+        "labels" => %{
           "functions.eigr.io/controller.version" =>
             "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}",
           "functions.eigr.io/wormhole.gate.earth.status" => "open"

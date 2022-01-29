@@ -15,7 +15,7 @@ defmodule Eigr.FunctionsController.K8S.ClusterIPService do
       "apiVersion" => "v1",
       "kind" => "Service",
       "metadata" => %{
-        "annotations" => %{
+        "labels" => %{
           "functions.eigr.io/controller.version" =>
             "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}",
           "functions.eigr.io/wormhole.gate.#{my_place_in_the_universe}.status" => "open",

@@ -18,10 +18,6 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
       "apiVersion" => "apps/v1",
       "kind" => "Deployment",
       "metadata" => %{
-        "annotations" => %{
-          "functions.eigr.io/controller.version" =>
-            "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}"
-        },
         "name" => name,
         "namespace" => ns,
         "labels" => %{"app" => name, "cluster-name" => "proxy"}
@@ -37,13 +33,19 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
               "prometheus.io/port" => "9001",
               "prometheus.io/scrape" => "true"
             },
-            "labels" => %{"app" => name, "cluster-name" => "proxy"}
+            "labels" => %{
+              "app" => name,
+              "cluster-name" => "proxy",
+              "functions.eigr.io/language" => language,
+              "functions.eigr.io/controller.version" =>
+                "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}"
+            }
           },
           "spec" => %{
             "containers" => [
               %{
                 "name" => "massa-proxy",
-                "image" => "docker.io/eigr/massa-proxy:0.1.31",
+                "image" => "#{resolve_proxy_image()}",
                 "env" => [
                   %{
                     "name" => "PROXY_POD_IP",
@@ -99,4 +101,12 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
       }
     }
   end
+
+  defp resolve_proxy_image(),
+    do:
+      Application.get_env(
+        :eigr_functions_controller,
+        :proxy_image,
+        "docker.io/eigr/massa-proxy:0.1.31"
+      )
 end

@@ -2,18 +2,18 @@ defmodule Eigr.FunctionsController.K8S.HeadlessService do
   @behaviour Eigr.FunctionsController.K8S.Manifest
 
   @impl true
-  def manifest(ns, name, _params),
+  def manifest(ns, _name, _params),
     do: %{
       "apiVersion" => "v1",
       "kind" => "Service",
       "metadata" => %{
-        "annotations" => %{
+        "labels" => %{
+          "svc-cluster-name" => "svc-proxy",
           "functions.eigr.io/controller.version" =>
             "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}"
         },
         "name" => "proxy-headless-svc",
-        "namespace" => ns,
-        "labels" => %{"svc-cluster-name" => "svc-proxy"}
+        "namespace" => ns
       },
       "spec" => %{
         "clusterIP" => "None",
