@@ -8,6 +8,8 @@ defmodule Eigr.FunctionsController.K8S.Controller do
     HeadlessService,
     HPA,
     Ingress,
+    LoadBalancer,
+    NodePort,
     StatefulSet
   }
 
@@ -98,6 +100,16 @@ defmodule Eigr.FunctionsController.K8S.Controller do
       }) do
     backend_params = Map.merge(@default_params, params)
 
+    expose_manifest =
+      Map.get(backend_params, "expose")
+      |> Map.get("method")
+      |> case do
+        "ingress" -> Ingress.manifest("default", name, backend_params)
+        "loadbalancer" -> LoadBalancer.manifest("default", name, backend_params)
+        "nodePort" -> NodePort.manifest("default", name, backend_params)
+        _ -> %{}
+      end
+
     %{
       configmap: ConfigMap.manifest("default", "proxy", backend_params),
       deployment: Deployment.manifest("default", name, backend_params),
@@ -117,6 +129,16 @@ defmodule Eigr.FunctionsController.K8S.Controller do
         "spec" => %{"backend" => params}
       }) do
     backend_params = Map.merge(@default_params, params)
+
+    expose_manifest =
+      Map.get(backend_params, "expose")
+      |> Map.get("method")
+      |> case do
+        "ingress" -> Ingress.manifest(ns, name, backend_params)
+        "loadbalancer" -> LoadBalancer.manifest(ns, name, backend_params)
+        "nodePort" -> NodePort.manifest(ns, name, backend_params)
+        _ -> %{}
+      end
 
     %{
       configmap: ConfigMap.manifest(ns, "proxy", backend_params),
