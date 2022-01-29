@@ -17,9 +17,10 @@ cat <<EOF | kubectl apply --filename -
 apiVersion: functions.eigr.io/v1
 kind: Function
 metadata:
-  name: shopping-cart
+  name: shopping-cart 
+  namespace: my-functions
 spec:
-  containers:
-  - image: my-docker-hub-username/shopping-cart:latest
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest
 EOF
 ```
