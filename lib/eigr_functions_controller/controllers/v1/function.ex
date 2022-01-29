@@ -98,8 +98,9 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
           #    - "server auth"
           #  http01-ingress-class: nginx-ingress-controller # Optional. Default is none
           #  http01-edit-in-place: "true" # Optional. Default is none
-      #loadbalancer: # Optional. Default is none.
-      #  serviceName: shopping-cart # Mandatory
+      #loadBalancer: # Optional. Default is none.
+      #  port: 8080
+      #  targetPort: 9000
       #nodePort: # Optional. Default is none. Use this only in development.
       #  port: 8080
       #  targetPort: 9000
@@ -156,14 +157,38 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     ]
   }
 
-  # @additional_printer_columns [
-  #  %{
-  #    name: "test",
-  #    type: "string",
-  #    description: "test",
-  #    JSONPath: ".spec.test"
-  #  }
-  # ]
+  @additional_printer_columns [
+    %{
+      name: "runtime",
+      type: "string",
+      description: "Runtime for function execution",
+      JSONPath: ".spec.backend.runtime"
+    },
+    %{
+      name: "language",
+      type: "string",
+      description: "User function language",
+      JSONPath: ".spec.backend.language"
+    },
+    %{
+      name: "expose method",
+      type: "string",
+      description: "Method used to expose function",
+      JSONPath: ".spec.backend.expose.method"
+    },
+    %{
+      name: "http transcode",
+      type: "boolean",
+      description: "Whether HTTP transcode is enabled",
+      JSONPath: ".spec.backend.features.httpTranscode"
+    },
+    %{
+      name: "eventing",
+      type: "boolean",
+      description: "Whether the function is eventing enabled",
+      JSONPath: ".spec.backend.features.eventing"
+    }
+  ]
 
   @doc """
   Called periodically for each existing CustomResource to allow for reconciliation.
@@ -172,7 +197,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @impl Bonny.Controller
   def reconcile(payload) do
     track_event(:reconcile, payload)
-    modify(payload)
+    :ok
   end
 
   @doc """
@@ -186,17 +211,61 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
 
     with {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.create(resources.cluster_service) |> run(),
-         {:ok, _} <- K8s.Client.create(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.create(resources.deployment) |> run() do
-      resource_res = K8s.Client.create(resources.autoscaler) |> run()
-      Logger.info("service result: #{inspect(resource_res)}")
+         {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
+      # {:ok, _} <- K8s.Client.create(resources.autoscaler) |> run() do
+      resource_res = K8s.Client.create(resources.deployment) |> run()
 
-      case resource_res do
-        {:ok, _} -> :ok
-        {:error, error} -> {:error, error}
+      result =
+        case resource_res do
+          {:ok, _} ->
+            case resources.expose_service do
+              {:ingress, definition} ->
+                K8s.Client.create(definition) |> run()
+
+              {:load_balancer, definition} ->
+                Logger.warn(
+                  "Using LoadBalancer is extremely discouraged. Instead try using the Ingress method"
+                )
+
+                K8s.Client.create(definition) |> run()
+
+              {:node_port, definition} ->
+                Logger.warn(
+                  "Using NodePort is extremely discouraged. Instead try using the Ingress method"
+                )
+
+                K8s.Client.create(definition) |> run()
+
+              {:none, _} ->
+                {:ok, nil}
+            end
+
+          {:error, error} ->
+            {:error, error}
+        end
+
+      case result do
+        {:ok, _} ->
+          Logger.info(
+            "User function #{resources.name} has been successfully deployed to namespace #{resources.namespace}"
+          )
+
+          :ok
+
+        {:error, error} ->
+          Logger.error(
+            "One or more resources of user function #{resources.name} failed during deployment. Error: #{inspect(error)}"
+          )
+
+          {:error, error}
       end
     else
-      {:error, error} -> {:error, error}
+      {:error, error} ->
+        Logger.error(
+          "One or more resources of user function #{resources.name} failed during deployment. Error: #{inspect(error)}"
+        )
+
+        {:error, error}
     end
   end
 
@@ -208,14 +277,64 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   def modify(payload) do
     resources = K8SController.get_function_manifests(payload)
 
-    with {:ok, _} <- K8s.Client.patch(resources.app_service) |> run(),
+    with {:ok, _} <- K8s.Client.delete(resources.app_service) |> run(),
+         {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.cluster_service) |> run(),
-         {:ok, _} <- K8s.Client.patch(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.patch(resources.deployment) |> run(),
-         {:ok, _} <- K8s.Client.patch(resources.autoscaler) |> run() do
-      :ok
+         # {:ok, _} <- K8s.Client.patch(resources.autoscaler) |> run(),
+         {:ok, _} <- K8s.Client.patch(resources.configmap) |> run() do
+      resource_res = K8s.Client.patch(resources.deployment) |> run()
+
+      result =
+        case resource_res do
+          {:ok, _} ->
+            case resources.expose_service do
+              {:ingress, definition} ->
+                K8s.Client.patch(definition) |> run()
+
+              {:load_balancer, definition} ->
+                Logger.warn(
+                  "Using LoadBalancer is extremely discouraged. Instead try using the Ingress method"
+                )
+
+                K8s.Client.patch(definition) |> run()
+
+              {:node_port, definition} ->
+                Logger.warn(
+                  "Using NodePort is extremely discouraged. Instead try using the Ingress method"
+                )
+
+                K8s.Client.patch(definition) |> run()
+
+              {:none, _} ->
+                {:ok, nil}
+            end
+
+          {:error, error} ->
+            {:error, error}
+        end
+
+      case result do
+        {:ok, _} ->
+          Logger.info(
+            "User function #{resources.name} has been successfully updated to namespace #{resources.namespace}"
+          )
+
+          :ok
+
+        {:error, error} ->
+          Logger.error(
+            "One or more resources of user function #{resources.name} failed during updating. Error: #{inspect(error)}"
+          )
+
+          {:error, error}
+      end
     else
-      {:error, error} -> {:error, error}
+      {:error, error} ->
+        Logger.error(
+          "One or more resources of user function #{resources.name} failed during updating. Error: #{inspect(error)}"
+        )
+
+        {:error, error}
     end
   end
 
@@ -230,12 +349,50 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
 
     with {:ok, _} <- K8s.Client.delete(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.cluster_service) |> run(),
-         {:ok, _} <- K8s.Client.delete(resources.configmap) |> run(),
-         {:ok, _} <- K8s.Client.delete(resources.deployment) |> run(),
-         {:ok, _} <- K8s.Client.delete(resources.autoscaler) |> run() do
-      :ok
+         # {:ok, _} <- K8s.Client.delete(resources.autoscaler) |> run(),
+         {:ok, _} <- K8s.Client.delete(resources.configmap) |> run() do
+      resource_res = K8s.Client.delete(resources.deployment) |> run()
+
+      result =
+        case resource_res do
+          {:ok, _} ->
+            case resources.expose_service do
+              {:ingress, definition} ->
+                K8s.Client.delete(definition) |> run()
+
+              {:load_balancer, definition} ->
+                K8s.Client.delete(definition) |> run()
+
+              {:node_port, definition} ->
+                K8s.Client.delete(definition) |> run()
+
+              {:none, _} ->
+                {:ok, nil}
+            end
+        end
+
+      case result do
+        {:ok, _} ->
+          Logger.info(
+            "All resources for user function #{resources.name} have been successfully deleted from namespace #{resources.namespace}"
+          )
+
+          :ok
+
+        {:error, error} ->
+          Logger.error(
+            "One or more resources of the user role #{resources.name} failed during its removal. Error: #{inspect(error)}"
+          )
+
+          {:error, error}
+      end
     else
-      {:error, error} -> {:error, error}
+      {:error, error} ->
+        Logger.error(
+          "One or more resources of the user role #{resources.name} failed during its removal. Error: #{inspect(error)}"
+        )
+
+        {:error, error}
     end
   end
 

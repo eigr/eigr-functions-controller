@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    functions.eigr.io/controller.version: 0.1.0
+    functions.eigr.io/wormhole.gate.gliese-86.distance-from-earth: 35.9 light-years
+    functions.eigr.io/wormhole.gate.gliese-86.status: open
+  name: shopping-cart-nodeport
+  namespace: default
+spec:
+  ports:
+  - port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: shopping-cart
+  type: NodePort

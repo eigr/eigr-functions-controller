@@ -3,5 +3,33 @@ defmodule Eigr.FunctionsController.K8S.LoadBalancer do
 
   @impl true
   def manifest(ns, name, params) do
+    loadBalancer = params["expose"]["loadBalancer"]
+
+    %{
+      "apiVersion" => "v1",
+      "kind" => "Service",
+      "metadata" => %{
+        "annotations" => %{
+          "functions.eigr.io/controller.version" =>
+            "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}",
+          "functions.eigr.io/wormhole.gate.earth.status" => "open"
+        },
+        "name" => "#{name}-loadbalancer",
+        "namespace" => ns
+      },
+      "spec" => %{
+        "selector" => %{
+          "app" => name
+        },
+        "ports" => [
+          %{
+            "protocol" => "TCP",
+            "port" => loadBalancer["port"],
+            "targetPort" => loadBalancer["targetPort"]
+          }
+        ],
+        "type" => "LoadBalancer"
+      }
+    }
   end
 end

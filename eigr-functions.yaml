@@ -51,7 +51,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: ghcr.io/eigr/functions-controller:0.1.35
+          image: ghcr.io/eigr/functions-controller:0.1.36
           name: eigr-functions-controller
           resources:
             limits:
@@ -80,7 +80,34 @@ metadata:
     k8s-app: eigr-functions-controller
   name: functions.functions.eigr.io
 spec:
-  additionalPrinterColumns: []
+  additionalPrinterColumns:
+    - JSONPath: .spec.backend.runtime
+      description: Runtime for function execution
+      name: runtime
+      type: string
+    - JSONPath: .spec.backend.language
+      description: User function language
+      name: language
+      type: string
+    - JSONPath: .spec.backend.expose.method
+      description: Method used to expose function
+      name: expose method
+      type: string
+    - JSONPath: .spec.backend.features.httpTranscode
+      description: Whether HTTP transcode is enabled
+      name: http transcode
+      type: boolean
+    - JSONPath: .spec.backend.features.eventing
+      description: Whether the function is eventing enabled
+      name: eventing
+      type: boolean
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+        
+              Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
   group: functions.eigr.io
   names:
     kind: Function
@@ -163,25 +190,23 @@ rules:
     verbs:
       - '*'
   - apiGroups:
-      - ""
-    resources:
-      - services
-      - pods
-      - configmaps
-      - hpa
-    verbs:
-      - '*'
-  - apiGroups:
       - apps
     resources:
       - deployments
-      - hpa
     verbs:
       - '*'
   - apiGroups:
       - autoscaling
     resources:
-      - hpa
+      - horizontalpodautoscaler
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - pods
+      - configmaps
       - horizontalpodautoscaler
     verbs:
       - '*'

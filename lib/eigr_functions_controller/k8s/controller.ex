@@ -63,8 +63,9 @@ defmodule Eigr.FunctionsController.K8S.Controller do
           }
         }
       },
-      "loadbalancer" => %{
-        "serviceName" => "none"
+      "loadBalancer" => %{
+        "port" => 8080,
+        "targetPort" => 9000
       },
       "nodePort" => %{
         "port" => 8080,
@@ -100,22 +101,32 @@ defmodule Eigr.FunctionsController.K8S.Controller do
       }) do
     backend_params = Map.merge(@default_params, params)
 
-    expose_manifest =
+    definition =
       Map.get(backend_params, "expose")
       |> Map.get("method")
       |> case do
-        "ingress" -> Ingress.manifest("default", name, backend_params)
-        "loadbalancer" -> LoadBalancer.manifest("default", name, backend_params)
-        "nodePort" -> NodePort.manifest("default", name, backend_params)
-        _ -> %{}
+        "ingress" ->
+          {:ingress, Ingress.manifest("default", name, backend_params)}
+
+        "loadbalancer" ->
+          {:load_balancer, LoadBalancer.manifest("default", name, backend_params)}
+
+        "nodeport" ->
+          {:node_port, NodePort.manifest("default", name, backend_params)}
+
+        _ ->
+          {:none, %{}}
       end
 
     %{
+      name: name,
+      namespace: "default",
       configmap: ConfigMap.manifest("default", "proxy", backend_params),
       deployment: Deployment.manifest("default", name, backend_params),
       autoscaler: HPA.manifest("default", name, backend_params),
       app_service: ClusterIPService.manifest("default", name, backend_params),
-      cluster_service: HeadlessService.manifest("default", name, backend_params)
+      cluster_service: HeadlessService.manifest("default", name, backend_params),
+      expose_service: definition
     }
   end
 
@@ -130,22 +141,32 @@ defmodule Eigr.FunctionsController.K8S.Controller do
       }) do
     backend_params = Map.merge(@default_params, params)
 
-    expose_manifest =
+    definition =
       Map.get(backend_params, "expose")
       |> Map.get("method")
       |> case do
-        "ingress" -> Ingress.manifest(ns, name, backend_params)
-        "loadbalancer" -> LoadBalancer.manifest(ns, name, backend_params)
-        "nodePort" -> NodePort.manifest(ns, name, backend_params)
-        _ -> %{}
+        "ingress" ->
+          {:ingress, Ingress.manifest(ns, name, backend_params)}
+
+        "loadbalancer" ->
+          {:load_balancer, LoadBalancer.manifest(ns, name, backend_params)}
+
+        "nodeport" ->
+          {:node_port, NodePort.manifest(ns, name, backend_params)}
+
+        _ ->
+          {:none, %{}}
       end
 
     %{
+      name: name,
+      namespace: ns,
       configmap: ConfigMap.manifest(ns, "proxy", backend_params),
       deployment: Deployment.manifest(ns, name, backend_params),
       autoscaler: HPA.manifest(ns, name, backend_params),
       app_service: ClusterIPService.manifest(ns, name, backend_params),
-      cluster_service: HeadlessService.manifest(ns, name, backend_params)
+      cluster_service: HeadlessService.manifest(ns, name, backend_params),
+      expose_service: definition
     }
   end
 end
