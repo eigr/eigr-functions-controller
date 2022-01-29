@@ -121,7 +121,7 @@ defmodule Eigr.FunctionsController.K8S.Controller do
     %{
       name: name,
       namespace: "default",
-      configmap: ConfigMap.manifest("default", "proxy", backend_params),
+      configmap: ConfigMap.manifest("default", name, backend_params),
       deployment: Deployment.manifest("default", name, backend_params),
       autoscaler: HPA.manifest("default", name, backend_params),
       app_service: ClusterIPService.manifest("default", name, backend_params),
@@ -161,7 +161,7 @@ defmodule Eigr.FunctionsController.K8S.Controller do
     %{
       name: name,
       namespace: ns,
-      configmap: ConfigMap.manifest(ns, "proxy", backend_params),
+      configmap: ConfigMap.manifest(ns, name, backend_params),
       deployment: Deployment.manifest(ns, name, backend_params),
       autoscaler: HPA.manifest(ns, name, backend_params),
       app_service: ClusterIPService.manifest(ns, name, backend_params),

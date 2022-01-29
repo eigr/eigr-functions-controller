@@ -83,7 +83,7 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
                 },
                 "envFrom" => [
                   %{
-                    "configMapRef" => %{"name" => "proxy-cm"}
+                    "configMapRef" => %{"name" => "#{name}-sidecar-cm"}
                   }
                 ]
               },

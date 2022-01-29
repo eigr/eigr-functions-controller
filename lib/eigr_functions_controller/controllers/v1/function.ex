@@ -210,10 +210,19 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     resources = K8SController.get_function_manifests(payload)
 
     with {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
-         {:ok, _} <- K8s.Client.create(resources.cluster_service) |> run(),
          {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
       # {:ok, _} <- K8s.Client.create(resources.autoscaler) |> run() do
       resource_res = K8s.Client.create(resources.deployment) |> run()
+
+      case K8s.Client.create(resources.cluster_service) |> run() do
+        {:ok, _} ->
+          Logger.info("Cluster service created")
+
+        {:error, err} ->
+          Logger.warn(
+            "Failure creating cluster service: #{inspect(err)}. Probably already exists."
+          )
+      end
 
       result =
         case resource_res do
