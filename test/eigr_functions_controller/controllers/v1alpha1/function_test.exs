@@ -1,13 +1,13 @@
-defmodule Eigr.FunctionsController.Controller.V1alpha1.StatefulServicesTest do
+defmodule Eigr.FunctionsController.Controllers.V1.FunctionTest do
   @moduledoc false
   use ExUnit.Case, async: false
-  alias Eigr.FunctionsController.Controller.V1alpha1.StatefulServices
+  alias Eigr.FunctionsController.Controllers.V1.Function
 
   describe "add/1" do
     @tag :skip
     test "returns :ok" do
       event = %{}
-      result = StatefulServices.add(event)
+      result = Function.add(event)
       assert result == :ok
     end
   end
@@ -16,7 +16,7 @@ defmodule Eigr.FunctionsController.Controller.V1alpha1.StatefulServicesTest do
     @tag :skip
     test "returns :ok" do
       event = %{}
-      result = StatefulServices.modify(event)
+      result = Function.modify(event)
       assert result == :ok
     end
   end
@@ -25,7 +25,7 @@ defmodule Eigr.FunctionsController.Controller.V1alpha1.StatefulServicesTest do
     @tag :skip
     test "returns :ok" do
       event = %{}
-      result = StatefulServices.delete(event)
+      result = Function.delete(event)
       assert result == :ok
     end
   end
@@ -34,7 +34,7 @@ defmodule Eigr.FunctionsController.Controller.V1alpha1.StatefulServicesTest do
     @tag :skip
     test "returns :ok" do
       event = %{}
-      result = StatefulServices.reconcile(event)
+      result = Function.reconcile(event)
       assert result == :ok
     end
   end
