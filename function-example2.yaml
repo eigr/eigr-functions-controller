@@ -2,6 +2,9 @@
 apiVersion: functions.eigr.io/v1
 kind: Function
 metadata:
+  annotations:
+    functions.eigr.io/proxy.image: "docker.io/eigr/massa-proxy:0.1.31"
+    functions.eigr.io/proxy-provider: massa-proxy
   name: shopping-cart-test # Mandatory. Name of the function
   # The namespace where the role will be deployed to the cluster. 
   # All proxies deployed in a given namespace form a cluster, that is, they are visible to each other.

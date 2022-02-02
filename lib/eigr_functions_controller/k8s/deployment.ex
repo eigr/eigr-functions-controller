@@ -9,6 +9,7 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
   defp gen_deployment(ns, name, params) do
     image = Map.get(params, "image")
     language = Map.get(params, "language")
+    cookie = Map.get(params, "cookie", default_cookie(ns))
     replicas = Map.get(params, "autoscaler") |> Map.get("minReplicas")
     port = Map.get(params, "portBinding") |> Map.get("port")
     resources = Map.get(params, "resources") |> get_limits(language)
@@ -48,8 +49,8 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
                 "image" => "#{resolve_proxy_image()}",
                 "env" => [
                   %{
-                    "name" => "PROXY_POD_IP",
-                    "value" => "6eycE1E/S341t4Bcto262ffyFWklCWHQIKloJDJYR7Y="
+                    "name" => "NODE_COOKIE",
+                    "value" => cookie
                   },
                   %{
                     "name" => "PROXY_POD_IP",
@@ -109,4 +110,7 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
         :proxy_image,
         "docker.io/eigr/massa-proxy:0.1.31"
       )
+
+  defp default_cookie(ns),
+    do: "#{ns}-#{:crypto.hash(:md5, ns) |> Base.encode16(case: :lower)}"
 end

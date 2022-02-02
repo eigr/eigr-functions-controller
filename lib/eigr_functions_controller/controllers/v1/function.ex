@@ -137,8 +137,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @version "v1"
 
   @rule {"apps", ["deployments"], ["*"]}
-  @rule {"autoscaling", ["horizontalpodautoscaler"], ["*"]}
-  @rule {"", ["services", "pods", "configmaps", "horizontalpodautoscaler"], ["*"]}
+  @rule {"", ["services", "pods", "configmaps", "autoscaling", "networking.k8s.io"], ["*"]}
 
   @scope :cluster
   @names %{
