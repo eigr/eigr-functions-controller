@@ -6,17 +6,24 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
   def get_path_type(%{"className" => "nginx"}), do: "Prefix"
 
   def get_annotations(params) do
-    status = params["useTls"] == "true"
+    status = params["useTls"]
 
     if status do
+      IO.inspect("ingress status true")
       tls_params = params["tls"]
       cluster_issuer = tls_params["certManager"]["clusterIssuer"]
 
       case cluster_issuer do
-        "none" -> {:nothing, params}
-        _ -> {:ok, get_cert_manager_params(tls_params)}
+        "none" ->
+          IO.inspect("ingress cluster issuer none")
+          {:nothing, params}
+
+        _ ->
+          IO.inspect("ingress cluster issuer found")
+          {:ok, get_cert_manager_params(tls_params)}
       end
     else
+      IO.inspect("ingress status false")
       {:nothing, params}
     end
   end

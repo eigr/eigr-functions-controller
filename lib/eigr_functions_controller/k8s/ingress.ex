@@ -13,30 +13,35 @@ defmodule Eigr.FunctionsController.K8S.Ingress do
     ingress = %{
       "apiVersion" => "networking.k8s.io/v1",
       "kind" => "Ingress",
-      "metadata" => %{
-        "labels" => %{
-          "functions.eigr.io/controller.version" =>
-            "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}",
-          "functions.eigr.io/wormhole.gate.earth.status" => "open"
-        },
-        "name" => "#{name}-ingress",
-        "namespace" => ns
-      },
+      "metadata" => %{},
       "spec" => %{}
     }
 
     ingress =
       case get_annotation_for_ingress(className, ingress_params) do
         {:ok, annotations} ->
-          Map.merge(ingress, %{
-            "metadata" => %{
-              "annotations" => annotations
-            }
-          })
+          IO.inspect("ingress certmanager merge")
+
+          %{
+            ingress
+            | "metadata" => %{
+                "annotations" => annotations,
+                "labels" => %{
+                  "functions.eigr.io/controller.version" =>
+                    "#{to_string(Application.spec(:eigr_functions_controller, :vsn))}",
+                  "functions.eigr.io/wormhole.gate.earth.status" => "open"
+                },
+                "name" => "#{name}-ingress",
+                "namespace" => ns
+              }
+          }
 
         {:nothing, _} ->
+          IO.inspect("ingress certmanager nothing")
           ingress
       end
+
+    IO.inspect(ingress)
 
     ingress =
       case get_tls(ingress_params) do
