@@ -1,6 +1,6 @@
 .PHONY: clean compile build install example local
 
-BONNY_IMAGE=ghcr.io/eigr/functions-controller:0.1.36
+BONNY_IMAGE=ghcr.io/eigr/functions-controller:0.1.37
 
 all: clean compile build
 #all: clean compile build install

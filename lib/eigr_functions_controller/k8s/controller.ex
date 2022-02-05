@@ -47,19 +47,20 @@ defmodule Eigr.FunctionsController.K8S.Controller do
     "expose" => %{
       "method" => "none",
       "ingress" => %{
+        "className" => "none",
         "host" => "none",
         "path" => "/",
-        "use-tls" => false,
+        "useTls" => true,
         "tls" => %{
           "secretName" => "eigr-functions-tls",
-          "cert-manager" => %{
-            "cluster-issuer" => "none",
-            "common-name" => "none",
+          "certManager" => %{
+            "clusterIssuer" => "none",
+            "commonName" => "none",
             "duration" => "2h",
             "renew-before" => "1h",
             "usages" => [],
-            "http01-ingress-class" => "none",
-            "http01-edit-in-place" => "false"
+            "http01IngressClass" => "none",
+            "http01EditInPlace" => "false"
           }
         }
       },

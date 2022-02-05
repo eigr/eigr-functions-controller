@@ -130,14 +130,14 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
 
   alias Eigr.FunctionsController.K8S.Controller, as: K8SController
 
-  # It would be possible to call @group "functions.eigr.io"
-  # However, to maintain compatibility with the original protocol, we will call it cloudstate.io
   @group "functions.eigr.io"
 
   @version "v1"
 
   @rule {"apps", ["deployments"], ["*"]}
-  @rule {"", ["services", "pods", "configmaps", "autoscaling", "networking.k8s.io"], ["*"]}
+  @rule {"autoscaling", ["horizontalpodautoscalers"], ["*"]}
+  @rule {"networking.k8s.io", ["ingresses"], ["*"]}
+  @rule {"", ["services", "pods", "configmaps"], ["*"]}
 
   @scope :cluster
   @names %{
@@ -209,8 +209,8 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     resources = K8SController.get_function_manifests(payload)
 
     with {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
-         {:ok, _} <- K8s.Client.create(resources.configmap) |> run() do
-      # {:ok, _} <- K8s.Client.create(resources.autoscaler) |> run() do
+         {:ok, _} <- K8s.Client.create(resources.configmap) |> run(),
+         {:ok, _} <- K8s.Client.create(resources.autoscaler) |> run() do
       resource_res = K8s.Client.create(resources.deployment) |> run()
 
       case K8s.Client.create(resources.cluster_service) |> run() do
@@ -288,7 +288,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
     with {:ok, _} <- K8s.Client.delete(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.create(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.cluster_service) |> run(),
-         # {:ok, _} <- K8s.Client.patch(resources.autoscaler) |> run(),
+         {:ok, _} <- K8s.Client.patch(resources.autoscaler) |> run(),
          {:ok, _} <- K8s.Client.patch(resources.configmap) |> run() do
       resource_res = K8s.Client.patch(resources.deployment) |> run()
 
@@ -357,7 +357,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
 
     with {:ok, _} <- K8s.Client.delete(resources.app_service) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.cluster_service) |> run(),
-         # {:ok, _} <- K8s.Client.delete(resources.autoscaler) |> run(),
+         {:ok, _} <- K8s.Client.delete(resources.autoscaler) |> run(),
          {:ok, _} <- K8s.Client.delete(resources.configmap) |> run() do
       resource_res = K8s.Client.delete(resources.deployment) |> run()
 

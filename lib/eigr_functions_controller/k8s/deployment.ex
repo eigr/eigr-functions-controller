@@ -96,7 +96,8 @@ defmodule Eigr.FunctionsController.K8S.Deployment do
                   %{"containerPort" => port}
                 ]
               }
-            ]
+            ],
+            "terminationGracePeriodSeconds" => 120
           }
         }
       }
