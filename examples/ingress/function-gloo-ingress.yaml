@@ -1,0 +1,14 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: simple-function-nginx-ingress
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest 
+    expose:
+      method: ingress
+      ingress:
+        className: gloo
+        host: simple-function-ingress.eigr.io
+        

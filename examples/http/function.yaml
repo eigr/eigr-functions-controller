@@ -1,0 +1,36 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: http-function
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest
+    features:
+      typeMappings: true
+      typeMappingsKeys:
+        - typeName: AddLineItem
+          persistentKey: user_id
+        - typeName: RemoveLineItem
+          persistentKey: user_id 
+        - typeName: GetShoppingCart
+          persistentKey: user_id  
+      httpTranscode: true       
+      httpTranscodeMappings:
+        - serviceName: ShoppingCart
+          rpcMethodName: AddItem
+          path: /cart/{user_id}/items/add
+          method: POST
+          body: "*"
+        - serviceName: ShoppingCart
+          rpcMethodName: RemoveItem
+          path: /cart/{user_id}/items/{product_id}
+          method: DELETE
+        - serviceName: ShoppingCart
+          rpcMethodName: GetCart
+          path: /cart/{user_id}
+          method: GET
+          additionalBindings:
+            - path: /cart/{user_id}/items
+              method: GET
+              responseBody: "items"

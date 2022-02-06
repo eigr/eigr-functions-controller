@@ -1,0 +1,14 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: simple-function
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest
+    expose:
+      method: nodeport
+      nodePort:
+        port: 8080
+        targetPort: 9000
+        nodePort: 30001

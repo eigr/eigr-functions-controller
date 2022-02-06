@@ -9,21 +9,17 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
     status = params["useTls"]
 
     if status do
-      IO.inspect("ingress status true")
       tls_params = params["tls"]
       cluster_issuer = tls_params["certManager"]["clusterIssuer"]
 
       case cluster_issuer do
         "none" ->
-          IO.inspect("ingress cluster issuer none")
           {:nothing, params}
 
         _ ->
-          IO.inspect("ingress cluster issuer found")
           {:ok, get_cert_manager_params(tls_params)}
       end
     else
-      IO.inspect("ingress status false")
       {:nothing, params}
     end
   end
@@ -31,11 +27,8 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
   def get_tls_secret(params) do
     host = params["host"]
     status = params["useTls"]
-    IO.inspect(host)
-    IO.inspect(status)
 
     if status do
-      IO.inspect("status true")
       secretName = params["tls"]["secretName"]
 
       {:ok,
@@ -44,7 +37,6 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
          "hosts" => ["#{host}"]
        }}
     else
-      IO.inspect("status false")
       {:nothing, params}
     end
   end

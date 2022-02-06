@@ -20,8 +20,6 @@ defmodule Eigr.FunctionsController.K8S.Ingress do
     ingress =
       case get_annotation_for_ingress(className, ingress_params) do
         {:ok, annotations} ->
-          IO.inspect("ingress certmanager merge")
-
           %{
             ingress
             | "metadata" => %{
@@ -37,18 +35,12 @@ defmodule Eigr.FunctionsController.K8S.Ingress do
           }
 
         {:nothing, _} ->
-          IO.inspect("ingress certmanager nothing")
           ingress
       end
-
-    IO.inspect(ingress)
 
     ingress =
       case get_tls(ingress_params) do
         {:ok, tls} ->
-          IO.inspect(tls)
-          IO.inspect(ingress)
-
           %{
             ingress
             | "spec" => %{
@@ -91,8 +83,6 @@ defmodule Eigr.FunctionsController.K8S.Ingress do
           }
 
         {:nothing, _} ->
-          IO.inspect("nothing")
-
           %{
             ingress
             | "spec" => %{
@@ -134,7 +124,6 @@ defmodule Eigr.FunctionsController.K8S.Ingress do
           }
       end
 
-    IO.inspect(ingress)
     ingress
   end
 

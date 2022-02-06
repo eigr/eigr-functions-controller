@@ -1,0 +1,28 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: certmanager-function-nginx-ingress
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest 
+    expose:
+      method: ingress
+      ingress:
+        className: nginx
+        host: certmanager-function-ingress.eigr.io
+        useTls: true
+        tls:
+          secretName: shopping-cart-tls
+          certManager:
+            clusterIssuer: eigr-functions-cluster-issuer
+          #  commonName: shopping-cart.eigr.io # Optional. Default is none
+          #  duration: 2h # Optional. Default is none
+          #  renewBefore: 1h # Optional. Default is none
+          #  usages: # Optional. Default is none
+          #    - "digital signature"
+          #    - "key encipherment"
+          #    - "server auth"
+          #  http01IngressClass: nginx-ingress-controller # Optional. Default is none
+          #  http01EditInplace: "true" # Optional. Default is none
+        

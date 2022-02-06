@@ -1,0 +1,8 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: simple-function
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest

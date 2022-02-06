@@ -24,3 +24,5 @@ spec:
     image: cloudstateio/cloudstate-python-tck:latest
 EOF
 ```
+
+For more usage examples see examples folder

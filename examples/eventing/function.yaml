@@ -1,0 +1,46 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: http-function
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest
+    features:
+      typeMappings: true
+      typeMappingsKeys:
+        - typeName: AddLineItem
+          persistentKey: user_id
+        - typeName: RemoveLineItem
+          persistentKey: user_id 
+        - typeName: GetShoppingCart
+          persistentKey: user_id  
+      eventing: true
+      eventingMappings:
+        sources:
+          - name: shopping-cart-source
+            serviceName: ShoppingCart
+            rpcMethodName: AddItem
+            type: kafka
+            config:
+              url: kafka:9092
+              topic: shopping-cart-in-events
+              groupId: shopping-cart-group
+              credentials:
+                secrets: kafka-credentials-secret
+                # If the credentials are stored in a secret, the username and password are not needed.
+                username: kafka-user # Use only in local development
+                password: kafka-password # Use only in local development
+        sinks:
+          - name: shopping-cart-sink
+            serviceName: ShoppingCart
+            rpcMethodName: AddItem
+            type: rabbitmq
+            config:
+              url: rabbitmq:9092
+              topic: shopping-cart-out-events
+              credentials:
+                secrets: rabbitmq-credentials-secret
+                # If the credentials are stored in a secret, the username and password are not needed.
+                username: rabbitmq-user # Use only in local development
+                password: rabbitmq-password # Use only in local development

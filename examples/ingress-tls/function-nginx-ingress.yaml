@@ -1,0 +1,17 @@
+---
+apiVersion: functions.eigr.io/v1
+kind: Function
+metadata:
+  name: tls-function-nginx-ingress
+spec:
+  backend:
+    image: cloudstateio/cloudstate-python-tck:latest 
+    expose:
+      method: ingress
+      ingress:
+        className: nginx
+        host: tls-function-ingress.eigr.io
+        useTls: true
+        tls:
+          secretName: shopping-cart-tls 
+        
