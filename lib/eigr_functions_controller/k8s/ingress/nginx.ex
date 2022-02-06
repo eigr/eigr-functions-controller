@@ -1,6 +1,8 @@
 defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
   @behaviour Eigr.FunctionsController.K8S.Ingress.Controller
 
+  alias Eigr.FunctionsController.K8S.Ingress.CertManager
+
   def get_class(%{"className" => "nginx"}), do: "nginx"
 
   def get_path_type(%{"className" => "nginx"}), do: "Prefix"
@@ -17,7 +19,7 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
           {:nothing, params}
 
         _ ->
-          {:ok, get_cert_manager_params(tls_params)}
+          {:ok, CertManager.get_cert_manager_params(tls_params)}
       end
     else
       {:nothing, params}
@@ -39,9 +41,5 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Nginx do
     else
       {:nothing, params}
     end
-  end
-
-  defp get_cert_manager_params(tls_params) do
-    %{"cert-manager.io/cluster-issuer" => tls_params["certManager"]["clusterIssuer"]}
   end
 end

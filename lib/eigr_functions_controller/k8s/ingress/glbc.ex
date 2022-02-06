@@ -7,7 +7,22 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Glbc do
   end
 
   def get_annotations(params) do
-    {:nothing, params}
+    status = params["useTls"]
+
+    if status do
+      tls_params = params["tls"]
+      cluster_issuer = tls_params["certManager"]["clusterIssuer"]
+
+      case cluster_issuer do
+        "none" ->
+          {:nothing, params}
+
+        _ ->
+          {:ok, get_cert_manager_params(tls_params)}
+      end
+    else
+      {:nothing, params}
+    end
   end
 
   def get_tls_secret(params) do
@@ -16,9 +31,18 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Glbc do
 
     if status do
       secretName = params["tls"]["secretName"]
-      {:ok, %{"tls" => %{"secretName" => "#{secretName}", "hosts" => ["#{host}"]}}}
+
+      {:ok,
+       %{
+         "secretName" => "#{secretName}",
+         "hosts" => ["#{host}"]
+       }}
     else
       {:nothing, params}
     end
+  end
+
+  defp get_cert_manager_params(tls_params) do
+    %{"cert-manager.io/cluster-issuer" => tls_params["certManager"]["clusterIssuer"]}
   end
 end
