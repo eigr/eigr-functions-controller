@@ -1,12 +1,14 @@
 defmodule Eigr.FunctionsController.K8S.Ingress.Ambassador do
   @behaviour Eigr.FunctionsController.K8S.Ingress.Controller
 
+  alias Eigr.FunctionsController.K8S.Ingress.{CertManager, Tls}
+
   def get_class(%{"className" => "ambassador"}), do: "ambassador"
 
-  def get_path_type(_params) do
-  end
+  def get_path_type(_params), do: "ImplementationSpecific"
 
   def get_annotations(params) do
+    annotations = %{}
     status = params["useTls"]
 
     if status do
@@ -18,31 +20,12 @@ defmodule Eigr.FunctionsController.K8S.Ingress.Ambassador do
           {:nothing, params}
 
         _ ->
-          {:ok, get_cert_manager_params(tls_params)}
+          {:ok, Map.merge(annotations, CertManager.get_cert_manager_params(tls_params))}
       end
     else
       {:nothing, params}
     end
   end
 
-  def get_tls_secret(params) do
-    host = params["host"]
-    status = params["useTls"]
-
-    if status do
-      secretName = params["tls"]["secretName"]
-
-      {:ok,
-       %{
-         "secretName" => "#{secretName}",
-         "hosts" => ["#{host}"]
-       }}
-    else
-      {:nothing, params}
-    end
-  end
-
-  defp get_cert_manager_params(tls_params) do
-    %{"cert-manager.io/cluster-issuer" => tls_params["certManager"]["clusterIssuer"]}
-  end
+  def get_tls_secret(params), do: Tls.get_secret(params)
 end

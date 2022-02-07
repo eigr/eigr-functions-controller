@@ -84,20 +84,20 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
         className: nginx
         host: shopping-cart.eigr.io # Mandatory
         path: / # Optional. Default is /
-        use-tls: true # Optional. Default is false
+        useTls: true # Optional. Default is false
         tls:
           secretName: shopping-cart-tls # Mandatory if "use-tls" is true. Name of the secret containing the TLS certificate. Defaults to the eigr-functions-tls
-          #cert-manager:
-          #  cluster-issuer: eigr-functions-cluster-issuer # Mandatory
-          #  common-name: shopping-cart.eigr.io # Optional. Default is none
+          #certMmanager:
+          #  clusterIssuer: eigr-functions-cluster-issuer # Mandatory
+          #  commonName: shopping-cart.eigr.io # Optional. Default is none
           #  duration: 2h # Optional. Default is none
-          #  renew-before: 1h # Optional. Default is none
+          #  renewBefore: 1h # Optional. Default is none
           #  usages: # Optional. Default is none
           #    - "digital signature"
           #    - "key encipherment"
           #    - "server auth"
-          #  http01-ingress-class: nginx-ingress-controller # Optional. Default is none
-          #  http01-edit-in-place: "true" # Optional. Default is none
+          #  http01IngressClass: nginx-ingress-controller # Optional. Default is none
+          #  http01EditInPlace: "true" # Optional. Default is none
       #loadBalancer: # Optional. Default is none.
       #  port: 8080
       #  targetPort: 9000
@@ -135,9 +135,10 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
   @version "v1"
 
   @rule {"apps", ["deployments"], ["*"]}
-  @rule {"autoscaling", ["horizontalpodautoscalers"], ["*"]}
-  @rule {"networking.k8s.io", ["ingresses"], ["*"]}
   @rule {"", ["services", "pods", "configmaps"], ["*"]}
+  @rule {"autoscaling", ["horizontalpodautoscalers"], ["*"]}
+  @rule {"extensions", ["ingresses", "ingressclasses"], ["*"]}
+  @rule {"networking.k8s.io", ["ingresses", "ingressclasses"], ["*"]}
 
   @scope :cluster
   @names %{
