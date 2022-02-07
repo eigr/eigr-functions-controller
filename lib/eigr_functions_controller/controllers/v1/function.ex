@@ -89,7 +89,7 @@ defmodule Eigr.FunctionsController.Controllers.V1.Function do
           secretName: shopping-cart-tls # Mandatory if "use-tls" is true. Name of the secret containing the TLS certificate. Defaults to the eigr-functions-tls
           #certMmanager:
           #  clusterIssuer: eigr-functions-cluster-issuer # Mandatory
-          #  commonName: shopping-cart.eigr.io # Optional. Default is none
+          #  cn: shopping-cart.eigr.io # Optional. Default is none
           #  duration: 2h # Optional. Default is none
           #  renewBefore: 1h # Optional. Default is none
           #  usages: # Optional. Default is none
