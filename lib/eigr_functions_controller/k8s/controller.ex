@@ -55,6 +55,7 @@ defmodule Eigr.FunctionsController.K8S.Controller do
           "secretName" => "eigr-functions-tls",
           "certManager" => %{
             "clusterIssuer" => "none",
+            "temporaryCertificate" => "false",
             "commonName" => "none",
             "duration" => "2h",
             "renew-before" => "1h",

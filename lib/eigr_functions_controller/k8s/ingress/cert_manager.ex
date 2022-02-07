@@ -6,7 +6,10 @@ defmodule Eigr.FunctionsController.K8S.Ingress.CertManager do
       get_usages(tls_params),
       get_issuer(tls_params),
       get_duration(tls_params),
-      get_renew_before(tls_params)
+      get_temp_cert(tls_params),
+      get_renew_before(tls_params),
+      get_ingress_class(tls_params),
+      get_edit_in_place(tls_params)
     ]
 
     Enum.reduce(opts, fn elem, acc -> Map.merge(acc, elem) end)
@@ -35,4 +38,22 @@ defmodule Eigr.FunctionsController.K8S.Ingress.CertManager do
 
   defp get_duration(%{"certManager" => %{"duration" => duration_value}} = _tls_param),
     do: %{"cert-manager.io/duration" => duration_value}
+
+  defp get_edit_in_place(%{"certManager" => %{"http01EditInplace" => "false"}} = _tls_param),
+    do: %{}
+
+  defp get_edit_in_place(%{"certManager" => %{"http01EditInplace" => "true"}} = _tls_param),
+    do: %{"acme.cert-manager.io/http01-edit-in-place" => "true"}
+
+  defp get_ingress_class(%{"certManager" => %{"http01IngressClass" => "none"}} = _tls_param),
+    do: %{}
+
+  defp get_ingress_class(%{"certManager" => %{"http01IngressClass" => value}} = _tls_param),
+    do: %{"acme.cert-manager.io/http01-edit-in-place" => value}
+
+  defp get_temp_cert(%{"certManager" => %{"temporaryCertificate" => "false"}} = _tls_param),
+    do: %{}
+
+  defp get_temp_cert(%{"certManager" => %{"temporaryCertificate" => "true"}} = _tls_param),
+    do: %{"manager.io/issue-temporary-certificate" => "true"}
 end
