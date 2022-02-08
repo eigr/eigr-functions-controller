@@ -16,6 +16,7 @@ spec:
           secretName: shopping-cart-tls
           certManager:
             clusterIssuer: eigr-functions-cluster-issuer
+          #  temporaryCertificate: "true" 
           #  cn: shopping-cart.eigr.io # Optional. Default is none
           #  duration: 2h # Optional. Default is none
           #  renewBefore: 1h # Optional. Default is none
